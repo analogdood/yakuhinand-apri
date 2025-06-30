@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-inline';">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="薬品注入率計算">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuiWrOWTgeazqeWFpemHj+ioiOeul+ODhOODvOODqyIsCiAgInNob3J0X25hbWUiOiAi6Jas5ZOB6KiI566XIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiIzY2N2VlYSIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1UWXdJaUJvWldsbmFIUTlJakUyTUNJZ2RtbGxkMEp2ZUQwaU1DQXdJREUyTUNBd0lHUmxQU0JoSWlCbWFXeHNQU0lqTmpZM1pXVmhJaUErUEhKbFkzUWdlRDBpTUNJZ2VUMGlNQ0lnZDJsa2RHZzlJakUyTUNJZ2FHVnBaMmgwUFNJeE5qQWlMejQ4ZEdWNGRDQjRQU0kwTUNJZ2VUMGlOekFpSUhSbGVIUXRZVzVqYUc5eVBTSmphMnhaZDJWc2JDSWdabWxzYkQwaUkzZG9hWFJsU1YwMmFubGlSRnBoZWpCalp6OGpZeFpaSUQ0Tk16bE9TV0ZMVUZkdlJuazNhMUpZUTFkVFV6RkhVMjlPUlVrNWFpdG1WMVozVWtvNlQxWk5UbGx5TTFwemJrcHFRa2hNYzJrNU1BPT08L3RleHQ+PC9zdmc+IiwKICAgICAgInNpemVzIjogIjE2MHgxNjAiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ==">
+    <title>薬品注入率計算機（詳細設定版）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 30px 20px;
+        max-width: 600px;
+        width: 100%;
+    }
+
+    h1 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+    .section {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        border-left: 4px solid #667eea;
+    }
+
+    .section h2 {
+        color: #2c3e50;
+        font-size: 18px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .input-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    label {
+        color: #34495e;
+        font-weight: 500;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    input {
+        padding: 12px 16px;
+        border: 2px solid #e1e8ed;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .toggle-section {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .toggle-btn {
+        background: #e9ecef;
+        color: #495057;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .toggle-btn.active {
+        background: #667eea;
+        color: white;
+    }
+
+    .calculate-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: block;
+        margin: 20px auto;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .calculate-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .results {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 30px;
+    }
+
+    .results h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 22px;
+    }
+
+    .result-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #667eea;
+    }
+
+    .main-result {
+        background: linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%);
+        border-left: 6px solid #667eea;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+        transform: scale(1.02);
+    }
+
+    .sub-result {
+        opacity: 0.7;
+        border-left: 3px solid #adb5bd;
+    }
+
+    .result-title {
+        color: #495057;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .result-value {
+        color: #2c3e50;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .main-value {
+        color: #667eea;
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .sub-value {
+        color: #6c757d;
+        font-size: 20px;
+    }
+
+    .result-unit {
+        color: #6c757d;
+        font-size: 14px;
+        margin-left: 5px;
+    }
+
+    .turbidity-range {
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 15px;
+        font-size: 12px;
+        color: #1976d2;
+    }
+
+    .formula-info {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+        font-size: 12px;
+        color: #856404;
+    }
+
+    .constants-section {
+        display: none;
+    }
+
+    .constants-section.active {
+        display: block;
+    }
+
+    @media (max-width: 640px) {
+        body {
+            padding: 10px;
+        }
+        
+        .container {
+            padding: 25px 15px;
+            border-radius: 15px;
+        }
+        
+        h1 {
+            font-size: 22px;
+            margin-bottom: 25px;
+        }
+        
+        .input-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        input {
+            padding: 14px 16px;
+            font-size: 16px;
+        }
+        
+        .calculate-btn {
+            padding: 16px 30px;
+            font-size: 16px;
+            border-radius: 30px;
+            margin: 25px auto;
+        }
+        
+        .result-card {
+            padding: 18px;
+        }
+        
+        .result-value {
+            font-size: 22px;
+        }
+    }
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <h1>薬品注入率計算機（詳細設定版）</h1>
+
+        <!-- 基本入力セクション -->
+        <div class="section">
+            <h2>📊 基本パラメータ</h2>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="flow-rate">着水井流量 (㎥/h)</label>
+                    <input type="number" id="flow-rate" step="0.1" placeholder="例: 100.0" value="680">
+                </div>
+                
+                <div class="input-group">
+                    <label for="turbidity">濁度</label>
+                    <input type="number" id="turbidity" step="0.1" placeholder="例: 15.5">
+                </div>
+                
+                <div class="input-group">
+                    <label for="raw-alkalinity">原水アルカリ度（mg/L）</label>
+                    <input type="number" id="raw-alkalinity" step="0.1" placeholder="例: 25.0" value="20.02">
+                </div>
+                
+                <div class="input-group">
+                    <label for="pac-correction">PAC補正値（ppm）</label>
+                    <input type="number" id="pac-correction" step="1" placeholder="例: +10, -5" value="0">
+                </div>
+            </div>
+        </div>
+
+        <!-- 定数設定切り替え -->
+        <div class="toggle-section">
+            <button class="toggle-btn" id="toggle-constants" onclick="toggleConstants()">⚙️ 詳細定数設定を表示</button>
+        </div>
+
+        <!-- 詳細定数設定セクション -->
+        <div class="section constants-section" id="constants-section">
+            <h2>⚙️ 詳細定数設定</h2>
+            
+            <!-- PAC計算係数 -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: #495057; font-size: 16px; margin-bottom: 15px;">PAC注入率計算係数</h3>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="pac-a1">A1 (レンジ1: 0-7度)</label>
+                        <input type="number" id="pac-a1" step="0.01" value="24.02">
+                    </div>
+                    <div class="input-group">
+                        <label for="pac-b1">B1 (レンジ1: 0-7度)</label>
+                        <input type="number" id="pac-b1" step="0.01" value="8.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="pac-a2">A2 (レンジ2: 8-39度)</label>
+                        <input type="number" id="pac-a2" step="0.01" value="27.51">
+                    </div>
+                    <div class="input-group">
+                        <label for="pac-b2">B2 (レンジ2: 8-39度)</label>
+                        <input type="number" id="pac-b2" step="0.01" value="7.25">
+                    </div>
+                    <div class="input-group">
+                        <label for="pac-a3">A3 (レンジ3: 40度以上)</label>
+                        <input type="number" id="pac-a3" step="0.01" value="29.50">
+                    </div>
+                    <div class="input-group">
+                        <label for="pac-b3">B3 (レンジ3: 40度以上)</label>
+                        <input type="number" id="pac-b3" step="0.01" value="6.88">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 苛性計算係数 -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: #495057; font-size: 16px; margin-bottom: 15px;">苛性注入率計算係数</h3>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="caustic-a2">A2 (目標アルカリ度)</label>
+                        <input type="number" id="caustic-a2" step="0.01" value="17.38">
+                    </div>
+                    <div class="input-group">
+                        <label for="caustic-k">K (アルカリ度消費比)</label>
+                        <input type="number" id="caustic-k" step="0.01" value="0.15">
+                    </div>
+                    <div class="input-group">
+                        <label for="caustic-f">F (苛性濃度係数)</label>
+                        <input type="number" id="caustic-f" step="0.01" value="3.20">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 薬品物性 -->
+            <div>
+                <h3 style="color: #495057; font-size: 16px; margin-bottom: 15px;">薬品物性</h3>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="chemical-density">薬品比重</label>
+                        <input type="number" id="chemical-density" step="0.001" value="1.200">
+                    </div>
+                    <div class="input-group">
+                        <label for="unit-conversion">単位変換係数</label>
+                        <input type="number" id="unit-conversion" step="1" value="1000">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="calculate-btn" onclick="calculate()">計算実行</button>
+        
+        <div class="results" id="results" style="display: none;">
+            <h2>💧 注入量計算結果</h2>
+            <div class="result-grid">
+                <div class="result-card main-result">
+                    <div class="result-title">🎯 PAC注入量</div>
+                    <div class="result-value main-value" id="pac-volume">--</div>
+                    <span class="result-unit">ℓ/h</span>
+                </div>
+                
+                <div class="result-card main-result">
+                    <div class="result-title">🎯 苛性注入量</div>
+                    <div class="result-value main-value" id="caustic-volume">--</div>
+                    <span class="result-unit">ℓ/h</span>
+                </div>
+                
+                <div class="result-card sub-result">
+                    <div class="result-title">参考: PAC注入率</div>
+                    <div class="result-value sub-value" id="pac-rate">--</div>
+                    <span class="result-unit">mg/ℓ</span>
+                </div>
+                
+                <div class="result-card sub-result">
+                    <div class="result-title">参考: 苛性注入率</div>
+                    <div class="result-value sub-value" id="caustic-rate">--</div>
+                    <span class="result-unit">mg/ℓ</span>
+                </div>
+            </div>
+            
+            <div class="turbidity-range" id="turbidity-info"></div>
+            
+            <div class="formula-info">
+                <strong>📋 注入量計算式</strong><br>
+                🎯 <strong>PAC注入量（ℓ/h） = (PAC注入率 × 流量) ÷ (比重 × 単位変換係数)</strong><br>
+                🎯 <strong>苛性注入量（ℓ/h） = (苛性注入率 × 流量) ÷ (比重 × 単位変換係数)</strong><br>
+                PAC注入率 = A + B × √濁度 + 補正値<br>
+                苛性注入率 = (A2 + K × PAC注入率 - A1) × F<br><br>
+                <strong>💡 定数の意味:</strong><br>
+                • A, B = 濁度レンジ別のPAC計算係数<br>
+                • A1 = 原水アルカリ度、A2 = 目標アルカリ度<br>
+                • K = アルカリ度消費比、F = 苛性濃度係数<br>
+                • 比重 = 薬品の実測比重値<br>
+                • 単位変換係数 = 濃度・単位変換用
+            </div>
+        </div>
+    </div>
+
+<script>
+    // 開発者: 大高宏
+    function toggleConstants() {
+        const section = document.getElementById('constants-section');
+        const btn = document.getElementById('toggle-constants');
+        
+        if (section.classList.contains('active')) {
+            section.classList.remove('active');
+            btn.textContent = '⚙️ 詳細定数設定を表示';
+            btn.classList.remove('active');
+        } else {
+            section.classList.add('active');
+            btn.textContent = '📊 詳細定数設定を非表示';
+            btn.classList.add('active');
+        }
+    }
+
+    function calculate() {
+        // 基本パラメータの取得
+        const flowRate = parseFloat(document.getElementById('flow-rate').value);
+        const turbidity = parseFloat(document.getElementById('turbidity').value);
+        const rawAlkalinity = parseFloat(document.getElementById('raw-alkalinity').value);
+        const pacCorrection = parseFloat(document.getElementById('pac-correction').value) || 0;
+        
+        // PAC計算係数の取得
+        const pacA1 = parseFloat(document.getElementById('pac-a1').value);
+        const pacB1 = parseFloat(document.getElementById('pac-b1').value);
+        const pacA2 = parseFloat(document.getElementById('pac-a2').value);
+        const pacB2 = parseFloat(document.getElementById('pac-b2').value);
+        const pacA3 = parseFloat(document.getElementById('pac-a3').value);
+        const pacB3 = parseFloat(document.getElementById('pac-b3').value);
+        
+        // 苛性計算係数の取得
+        const causticA2 = parseFloat(document.getElementById('caustic-a2').value);
+        const causticK = parseFloat(document.getElementById('caustic-k').value);
+        const causticF = parseFloat(document.getElementById('caustic-f').value);
+        
+        // 薬品物性の取得
+        const chemicalDensity = parseFloat(document.getElementById('chemical-density').value);
+        const unitConversion = parseFloat(document.getElementById('unit-conversion').value);
+
+        // バリデーション
+        if (isNaN(flowRate) || isNaN(turbidity) || isNaN(rawAlkalinity)) {
+            alert('必須項目をすべて正しく入力してください。');
+            return;
+        }
+
+        if (flowRate < 0 || turbidity < 0 || rawAlkalinity < 0) {
+            alert('マイナス値は入力できません。正の値を入力してください。');
+            return;
+        }
+
+        if (flowRate === 0) {
+            alert('流量が0だと計算できません。正の値を入力してください。');
+            return;
+        }
+
+        // PAC注入率の計算（濁度レンジに応じて係数を選択）
+        let A, B, rangeInfo;
+        if (turbidity < 8) {
+            A = pacA1;
+            B = pacB1;
+            rangeInfo = `レンジ1 (0～7度) A=${A}, B=${B}`;
+        } else if (turbidity < 40) {
+            A = pacA2;
+            B = pacB2;
+            rangeInfo = `レンジ2 (8～39度) A=${A}, B=${B}`;
+        } else {
+            A = pacA3;
+            B = pacB3;
+            rangeInfo = `レンジ3 (40度以上) A=${A}, B=${B}`;
+        }
+
+        // 基本PAC注入率を計算
+        const basePacRate = A + B * Math.sqrt(turbidity);
+        
+        // 補正値を適用した最終PAC注入率
+        const finalPacRate = basePacRate + pacCorrection;
+        
+        // 苛性注入率の計算（補正後のPAC注入率を使用）
+        const causticRate = (causticA2 + causticK * finalPacRate - rawAlkalinity) * causticF;
+        
+        // 注入量の計算
+        const pacVolume = (finalPacRate * flowRate) / (chemicalDensity * unitConversion);
+        const causticVolume = (causticRate * flowRate) / (chemicalDensity * unitConversion);
+
+        // 結果の表示
+        document.getElementById('pac-rate').textContent = finalPacRate.toFixed(2);
+        document.getElementById('caustic-rate').textContent = causticRate.toFixed(2);
+        document.getElementById('pac-volume').textContent = pacVolume.toFixed(2);
+        document.getElementById('caustic-volume').textContent = causticVolume.toFixed(2);
+        
+        // 補正値表示の準備
+        let correctionDisplay = '';
+        if (pacCorrection !== 0) {
+            correctionDisplay = ` | PAC補正: ${pacCorrection > 0 ? '+' : ''}${pacCorrection}`;
+        }
+        
+        document.getElementById('turbidity-info').textContent = 
+            `${rangeInfo} | A1=${rawAlkalinity}, A2=${causticA2}, K=${causticK}, F=${causticF} | 比重=${chemicalDensity}${correctionDisplay}`;
+
+        // 結果セクションを表示
+        document.getElementById('results').style.display = 'block';
+        
+        // 結果セクションまでスムーズスクロール
+        document.getElementById('results').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }
+
+    // Enterキーで計算実行
+    document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            calculate();
+        }
+    });
+
+    // Service Worker登録
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            const swCode = `
+                const CACHE_NAME = 'yakuhin-calc-advanced-v1';
+                const urlsToCache = [
+                    './',
+                    './薬品注入率計算機.html'
+                ];
+
+                // インストール時にキャッシュを作成
+                self.addEventListener('install', (event) => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then((cache) => {
+                                return cache.addAll(urlsToCache);
+                            })
+                    );
+                    self.skipWaiting();
+                });
+
+                // アクティベート時に古いキャッシュを削除
+                self.addEventListener('activate', (event) => {
+                    event.waitUntil(
+                        caches.keys().then((cacheNames) => {
+                            return Promise.all(
+                                cacheNames.map((cacheName) => {
+                                    if (cacheName !== CACHE_NAME) {
+                                        return caches.delete(cacheName);
+                                    }
+                                })
+                            );
+                        })
+                    );
+                    self.clients.claim();
+                });
+
+                // ネットワークリクエストをキャッシュファーストで処理
+                self.addEventListener('fetch', (event) => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then((response) => {
+                                // キャッシュにあればそれを返す
+                                if (response) {
+                                    return response;
+                                }
+                                // なければネットワークから取得
+                                return fetch(event.request);
+                            })
+                    );
+                });
+            `;
+
+            // Data URIでService Workerを登録
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            
+            navigator.serviceWorker.register(swUrl)
+                .then((registration) => {
+                    console.log('Service Worker登録成功:', registration.scope);
+                })
+                .catch((error) => {
+                    console.log('Service Worker登録失敗:', error);
+                });
+        });
+    }
+
+    // PWA - シンプルなインストール促進
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+    });
+</script>
+
+</body>
+</html>
