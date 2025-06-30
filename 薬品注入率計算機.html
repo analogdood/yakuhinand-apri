@@ -318,6 +318,20 @@
         <div class="section constants-section" id="constants-section">
             <h2>⚙️ 詳細定数設定</h2>
             
+            <!-- 設定管理ボタン -->
+            <div style="text-align: center; margin-bottom: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button class="toggle-btn" onclick="resetToDefaults()" style="background: #dc3545; color: white;">
+                    🔄 デフォルト値に戻す
+                </button>
+                <button class="toggle-btn" onclick="exportSettings()" style="background: #28a745; color: white;">
+                    📤 設定をエクスポート
+                </button>
+                <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importSettings(event)">
+                <button class="toggle-btn" onclick="document.getElementById('import-file').click()" style="background: #007bff; color: white;">
+                    📥 設定をインポート
+                </button>
+            </div>
+            
             <!-- PAC計算係数 -->
             <div style="margin-bottom: 25px;">
                 <h3 style="color: #495057; font-size: 16px; margin-bottom: 15px;">PAC注入率計算係数</h3>
@@ -434,6 +448,175 @@
 
 <script>
     // 開発者: 大高宏
+    
+    // デフォルト設定値
+    const DEFAULT_SETTINGS = {
+        // 基本パラメータ
+        flowRate: '680',
+        rawAlkalinity: '20.02',
+        pacCorrection: '0',
+        // PAC計算係数
+        pacA1: '24.02',
+        pacB1: '8.5',
+        pacA2: '27.51',
+        pacB2: '7.25',
+        pacA3: '29.50',
+        pacB3: '6.88',
+        // 苛性計算係数
+        causticA2: '17.38',
+        causticK: '0.15',
+        causticF: '3.20',
+        // 薬品物性
+        chemicalDensity: '1.200',
+        unitConversion: '1000'
+    };
+
+    // 設定保存
+    function saveSettings() {
+        const settings = {
+            flowRate: document.getElementById('flow-rate').value,
+            rawAlkalinity: document.getElementById('raw-alkalinity').value,
+            pacCorrection: document.getElementById('pac-correction').value,
+            pacA1: document.getElementById('pac-a1').value,
+            pacB1: document.getElementById('pac-b1').value,
+            pacA2: document.getElementById('pac-a2').value,
+            pacB2: document.getElementById('pac-b2').value,
+            pacA3: document.getElementById('pac-a3').value,
+            pacB3: document.getElementById('pac-b3').value,
+            causticA2: document.getElementById('caustic-a2').value,
+            causticK: document.getElementById('caustic-k').value,
+            causticF: document.getElementById('caustic-f').value,
+            chemicalDensity: document.getElementById('chemical-density').value,
+            unitConversion: document.getElementById('unit-conversion').value
+        };
+        
+        try {
+            localStorage.setItem('yakuhin-calc-settings', JSON.stringify(settings));
+        } catch (e) {
+            console.warn('設定の保存に失敗しました:', e);
+        }
+    }
+
+    // 設定読み込み
+    function loadSettings() {
+        try {
+            const saved = localStorage.getItem('yakuhin-calc-settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                
+                // 各フィールドに値を復元
+                Object.keys(settings).forEach(key => {
+                    const element = document.getElementById(key.replace(/([A-Z])/g, '-$1').toLowerCase());
+                    if (element) {
+                        element.value = settings[key];
+                    }
+                });
+                
+                console.log('設定を読み込みました');
+                return true;
+            }
+        } catch (e) {
+            console.warn('設定の読み込みに失敗しました:', e);
+        }
+        return false;
+    }
+
+    // デフォルト値にリセット
+    function resetToDefaults() {
+        if (confirm('全ての設定をデフォルト値に戻しますか？')) {
+            Object.keys(DEFAULT_SETTINGS).forEach(key => {
+                const element = document.getElementById(key.replace(/([A-Z])/g, '-$1').toLowerCase());
+                if (element) {
+                    element.value = DEFAULT_SETTINGS[key];
+                }
+            });
+            
+            saveSettings();
+            alert('設定をデフォルト値に戻しました');
+        }
+    }
+
+    // 設定エクスポート
+    function exportSettings() {
+        const settings = {
+            flowRate: document.getElementById('flow-rate').value,
+            rawAlkalinity: document.getElementById('raw-alkalinity').value,
+            pacCorrection: document.getElementById('pac-correction').value,
+            pacA1: document.getElementById('pac-a1').value,
+            pacB1: document.getElementById('pac-b1').value,
+            pacA2: document.getElementById('pac-a2').value,
+            pacB2: document.getElementById('pac-b2').value,
+            pacA3: document.getElementById('pac-a3').value,
+            pacB3: document.getElementById('pac-b3').value,
+            causticA2: document.getElementById('caustic-a2').value,
+            causticK: document.getElementById('caustic-k').value,
+            causticF: document.getElementById('caustic-f').value,
+            chemicalDensity: document.getElementById('chemical-density').value,
+            unitConversion: document.getElementById('unit-conversion').value,
+            exportDate: new Date().toISOString(),
+            version: '1.0'
+        };
+
+        const dataStr = JSON.stringify(settings, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `薬品計算設定_${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        
+        URL.revokeObjectURL(url);
+    }
+
+    // 設定インポート
+    function importSettings(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const settings = JSON.parse(e.target.result);
+                
+                // バージョンチェック
+                if (settings.version && settings.version !== '1.0') {
+                    if (!confirm('異なるバージョンの設定ファイルです。インポートを続行しますか？')) {
+                        return;
+                    }
+                }
+
+                // 設定を適用
+                Object.keys(settings).forEach(key => {
+                    if (key === 'exportDate' || key === 'version') return;
+                    
+                    const element = document.getElementById(key.replace(/([A-Z])/g, '-$1').toLowerCase());
+                    if (element && settings[key] !== undefined) {
+                        element.value = settings[key];
+                    }
+                });
+
+                saveSettings();
+                alert('設定をインポートしました');
+                
+            } catch (error) {
+                alert('設定ファイルの読み込みに失敗しました: ' + error.message);
+            }
+        };
+        
+        reader.readAsText(file);
+        event.target.value = ''; // ファイル選択をリセット
+    }
+
+    // 入力値変更時の自動保存
+    function setupAutoSave() {
+        const inputs = document.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            input.addEventListener('change', saveSettings);
+            input.addEventListener('blur', saveSettings);
+        });
+    }
+
     function toggleConstants() {
         const section = document.getElementById('constants-section');
         const btn = document.getElementById('toggle-constants');
@@ -616,6 +799,17 @@
                 });
         });
     }
+
+    // 初期化処理
+    window.addEventListener('load', () => {
+        // 設定を読み込み
+        loadSettings();
+        
+        // 自動保存を設定
+        setupAutoSave();
+        
+        console.log('薬品注入率計算機（詳細設定版）初期化完了');
+    });
 
     // PWA - シンプルなインストール促進
     let deferredPrompt;
