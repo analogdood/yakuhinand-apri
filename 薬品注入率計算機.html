@@ -332,32 +332,53 @@
                 </button>
             </div>
             
+            <!-- 濁度レンジ設定 -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: #495057; font-size: 16px; margin-bottom: 15px;">濁度レンジ設定</h3>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="range1-max">レンジ1上限値 (度)</label>
+                        <input type="number" id="range1-max" step="0.1" value="7" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="range2-max">レンジ2上限値 (度)</label>
+                        <input type="number" id="range2-max" step="0.1" value="39" min="1">
+                    </div>
+                </div>
+                <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 12px; color: #6c757d;">
+                    <strong>設定例:</strong> レンジ1上限値=7, レンジ2上限値=39の場合<br>
+                    • レンジ1: 0～7度<br>
+                    • レンジ2: 8～39度<br>
+                    • レンジ3: 40度以上
+                </div>
+            </div>
+
             <!-- PAC計算係数 -->
             <div style="margin-bottom: 25px;">
                 <h3 style="color: #495057; font-size: 16px; margin-bottom: 15px;">PAC注入率計算係数</h3>
                 <div class="input-grid">
                     <div class="input-group">
-                        <label for="pac-a1">A1 (レンジ1: 0-7度)</label>
+                        <label for="pac-a1">A1 (レンジ1)</label>
                         <input type="number" id="pac-a1" step="0.01" value="24.02">
                     </div>
                     <div class="input-group">
-                        <label for="pac-b1">B1 (レンジ1: 0-7度)</label>
+                        <label for="pac-b1">B1 (レンジ1)</label>
                         <input type="number" id="pac-b1" step="0.01" value="8.5">
                     </div>
                     <div class="input-group">
-                        <label for="pac-a2">A2 (レンジ2: 8-39度)</label>
+                        <label for="pac-a2">A2 (レンジ2)</label>
                         <input type="number" id="pac-a2" step="0.01" value="27.51">
                     </div>
                     <div class="input-group">
-                        <label for="pac-b2">B2 (レンジ2: 8-39度)</label>
+                        <label for="pac-b2">B2 (レンジ2)</label>
                         <input type="number" id="pac-b2" step="0.01" value="7.25">
                     </div>
                     <div class="input-group">
-                        <label for="pac-a3">A3 (レンジ3: 40度以上)</label>
+                        <label for="pac-a3">A3 (レンジ3)</label>
                         <input type="number" id="pac-a3" step="0.01" value="29.50">
                     </div>
                     <div class="input-group">
-                        <label for="pac-b3">B3 (レンジ3: 40度以上)</label>
+                        <label for="pac-b3">B3 (レンジ3)</label>
                         <input type="number" id="pac-b3" step="0.01" value="6.88">
                     </div>
                 </div>
@@ -460,6 +481,9 @@
         flowRate: '680',
         rawAlkalinity: '20.02',
         pacCorrection: '0',
+        // 濁度レンジ設定
+        range1Max: '7',
+        range2Max: '39',
         // PAC計算係数
         pacA1: '24.02',
         pacB1: '8.5',
@@ -482,6 +506,8 @@
             flowRate: document.getElementById('flow-rate').value,
             rawAlkalinity: document.getElementById('raw-alkalinity').value,
             pacCorrection: document.getElementById('pac-correction').value,
+            range1Max: document.getElementById('range1-max').value,
+            range2Max: document.getElementById('range2-max').value,
             pacA1: document.getElementById('pac-a1').value,
             pacB1: document.getElementById('pac-b1').value,
             pacA2: document.getElementById('pac-a2').value,
@@ -547,6 +573,8 @@
             flowRate: document.getElementById('flow-rate').value,
             rawAlkalinity: document.getElementById('raw-alkalinity').value,
             pacCorrection: document.getElementById('pac-correction').value,
+            range1Max: document.getElementById('range1-max').value,
+            range2Max: document.getElementById('range2-max').value,
             pacA1: document.getElementById('pac-a1').value,
             pacB1: document.getElementById('pac-b1').value,
             pacA2: document.getElementById('pac-a2').value,
@@ -677,20 +705,30 @@
             return;
         }
 
+        // レンジ設定値の取得
+        const range1Max = parseFloat(document.getElementById('range1-max').value);
+        const range2Max = parseFloat(document.getElementById('range2-max').value);
+
+        // バリデーション: レンジ設定値の妥当性チェック
+        if (isNaN(range1Max) || isNaN(range2Max) || range1Max < 0 || range2Max <= range1Max) {
+            alert('レンジ設定が不正です。レンジ1上限値 < レンジ2上限値となるよう、正の値を入力してください。');
+            return;
+        }
+
         // PAC注入率の計算（濁度レンジに応じて係数を選択）
         let A, B, rangeInfo;
-        if (turbidity < 8) {
+        if (turbidity <= range1Max) {
             A = pacA1;
             B = pacB1;
-            rangeInfo = `レンジ1 (0～7度) A=${A}, B=${B}`;
-        } else if (turbidity < 40) {
+            rangeInfo = `レンジ1 (0～${range1Max}度) A=${A}, B=${B}`;
+        } else if (turbidity <= range2Max) {
             A = pacA2;
             B = pacB2;
-            rangeInfo = `レンジ2 (8～39度) A=${A}, B=${B}`;
+            rangeInfo = `レンジ2 (${range1Max + 0.1}～${range2Max}度) A=${A}, B=${B}`;
         } else {
             A = pacA3;
             B = pacB3;
-            rangeInfo = `レンジ3 (40度以上) A=${A}, B=${B}`;
+            rangeInfo = `レンジ3 (${range2Max + 0.1}度以上) A=${A}, B=${B}`;
         }
 
         // 基本PAC注入率を計算
