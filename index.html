@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-inline';">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="薬品注入計算ツール">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuiWrOWTgeazqeWFpemHj+ioiOeul+ODhOODvOODqyIsCiAgInNob3J0X25hbWUiOiAi6Jas5ZOB6KiI566XIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiIzY2N2VlYSIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1UWXdJaUJvWldsbmFIUTlJakUyTUNJZ2RtbGxkMEp2ZUQwaU1DQXdJREUyTUNBd0lHUmxQU0JoSWlCbWFXeHNQU0lqTmpZM1pXVmhJaUErUEhKbFkzUWdlRDBpTUNJZ2VUMGlNQ0lnZDJsa2RHZzlJakUyTUNJZ2FHVnBaMmgwUFNJeE5qQWlMejQ4ZEdWNGRDQjRQU0kwTUNJZ2VUMGlOekFpSUhSbGVIUXRZVzVqYUc5eVBTSmphMnhaZDJWc2JDSWdabWxzYkQwaUkzZG9hWFJsU1YwMmFubGlSRnBoZWpCalp6OGpZeFpaSUQ0Tk16bE9TV0ZMVUZkdlJuazNhMUpZUTFkVFV6RkhVMjlPUlVrNWFpdG1WMVozVWtvNlQxWk5UbGx5TTFwemJrcHFRa2hNYzJrNU1BPT08L3RleHQ+PC9zdmc+IiwKICAgICAgInNpemVzIjogIjE2MHgxNjAiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ==">
+    <title>薬品・活性炭注入計算ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 40px 30px;
+        max-width: 600px;
+        width: 100%;
+        text-align: center;
+    }
+
+    h1 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 32px;
+        font-weight: 600;
+    }
+
+    .subtitle {
+        color: #6c757d;
+        margin-bottom: 40px;
+        font-size: 16px;
+        font-weight: 400;
+    }
+
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .tool-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+        border: 2px solid transparent;
+    }
+
+    .tool-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        border-color: #667eea;
+    }
+
+    .tool-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    .pac-card {
+        border-left: 5px solid #667eea;
+    }
+
+    .pac-card:hover {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%);
+    }
+
+    .carbon-card {
+        border-left: 5px solid #2d5016;
+    }
+
+    .carbon-card:hover {
+        border-color: #2d5016;
+        background: linear-gradient(135deg, #f0f6eb 0%, #e6f0dc 100%);
+    }
+
+    .rate-calc-card {
+        border-left: 5px solid #764ba2;
+    }
+
+    .rate-calc-card:hover {
+        border-color: #764ba2;
+        background: linear-gradient(135deg, #f8f6ff 0%, #f0ecff 100%);
+    }
+
+    .tool-title {
+        color: #2c3e50;
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .tool-description {
+        color: #6c757d;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+
+    .tool-features {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .feature {
+        color: #495057;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .feature::before {
+        content: "✓";
+        color: #28a745;
+        font-weight: bold;
+    }
+
+    .footer {
+        border-top: 1px solid #dee2e6;
+        padding-top: 25px;
+        color: #6c757d;
+        font-size: 12px;
+    }
+
+    .footer-links {
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .footer-link {
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .footer-link:hover {
+        color: #5a6fd8;
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 30px 20px;
+            margin: 10px;
+        }
+        
+        h1 {
+            font-size: 26px;
+        }
+        
+        .tools-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .tool-card {
+            padding: 25px 15px;
+        }
+        
+        .tool-icon {
+            font-size: 40px;
+        }
+        
+        .tool-title {
+            font-size: 20px;
+        }
+        
+        .footer-links {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 薬品・活性炭注入計算ツール</h1>
+        <p class="subtitle">浄水場での薬品注入量を正確に計算します</p>
+
+        <div class="tools-grid">
+            <!-- PAC注入量計算 -->
+            <a href="第一第二浄水場薬品注入量計算.html" class="tool-card pac-card">
+                <span class="tool-icon">💧</span>
+                <h3 class="tool-title">PAC注入量計算</h3>
+                <p class="tool-description">第一・第二浄水場でのPAC（ポリ塩化アルミニウム）と苛性ソーダの注入量を計算します。</p>
+                <div class="tool-features">
+                    <div class="feature">濁度に応じた自動計算</div>
+                    <div class="feature">PAC補正値対応</div>
+                    <div class="feature">注入率・注入量を同時表示</div>
+                </div>
+            </a>
+
+            <!-- 活性炭注入計算 -->
+            <a href="活性炭注入計算機.html" class="tool-card carbon-card">
+                <span class="tool-icon">🌿</span>
+                <h3 class="tool-title">活性炭注入計算</h3>
+                <p class="tool-description">活性炭設備のない浄水場での活性炭スラリー注入量を計算します。</p>
+                <div class="tool-features">
+                    <div class="feature">500Lタンクでの注入計算</div>
+                    <div class="feature">1分間注入量を表示</div>
+                    <div class="feature">タンク持続時間を算出</div>
+                </div>
+            </a>
+
+            <!-- 薬品注入率計算機 -->
+            <a href="薬品注入率計算機.html" class="tool-card rate-calc-card">
+                <span class="tool-icon">⚙️</span>
+                <h3 class="tool-title">薬品注入率計算機（詳細版）</h3>
+                <p class="tool-description">詳細設定が可能な薬品注入率計算機です。定数の調整やデータ管理機能付き。</p>
+                <div class="tool-features">
+                    <div class="feature">詳細定数設定</div>
+                    <div class="feature">設定の保存・復元</div>
+                    <div class="feature">設定インポート/エクスポート</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="footer">
+            <div class="footer-links">
+                <a href="第一第二浄水場薬品注入量計算.html" class="footer-link">PAC注入量計算</a>
+                <a href="活性炭注入計算機.html" class="footer-link">活性炭注入計算</a>
+                <a href="薬品注入率計算機.html" class="footer-link">詳細設定版</a>
+            </div>
+            <p>問い合わせ先：大高宏</p>
+            <p>&copy; 2024 薬品・活性炭注入計算ツール</p>
+        </div>
+    </div>
+
+<script>
+    // PWA - シンプルなインストール促進
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+    });
+
+    // Service Worker登録
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            const swCode = `
+                const CACHE_NAME = 'yakuhin-tools-index-v1';
+                const urlsToCache = [
+                    './',
+                    './index.html',
+                    './第一第二浄水場薬品注入量計算.html',
+                    './活性炭注入計算機.html',
+                    './薬品注入率計算機.html'
+                ];
+
+                // インストール時にキャッシュを作成
+                self.addEventListener('install', (event) => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then((cache) => {
+                                return cache.addAll(urlsToCache);
+                            })
+                    );
+                    self.skipWaiting();
+                });
+
+                // アクティベート時に古いキャッシュを削除
+                self.addEventListener('activate', (event) => {
+                    event.waitUntil(
+                        caches.keys().then((cacheNames) => {
+                            return Promise.all(
+                                cacheNames.map((cacheName) => {
+                                    if (cacheName !== CACHE_NAME) {
+                                        return caches.delete(cacheName);
+                                    }
+                                })
+                            );
+                        })
+                    );
+                    self.clients.claim();
+                });
+
+                // ネットワークリクエストをキャッシュファーストで処理
+                self.addEventListener('fetch', (event) => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then((response) => {
+                                // キャッシュにあればそれを返す
+                                if (response) {
+                                    return response;
+                                }
+                                // なければネットワークから取得
+                                return fetch(event.request);
+                            })
+                    );
+                });
+            `;
+
+            // Data URIでService Workerを登録
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            
+            navigator.serviceWorker.register(swUrl)
+                .then((registration) => {
+                    console.log('Service Worker登録成功:', registration.scope);
+                })
+                .catch((error) => {
+                    console.log('Service Worker登録失敗:', error);
+                });
+        });
+    }
+
+    console.log('薬品・活性炭注入計算ツール メインページ初期化完了');
+</script>
+
+</body>
+</html>

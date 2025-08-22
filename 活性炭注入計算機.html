@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2d5016">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-inline';">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="活性炭注入計算">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIua0u+aOp+eCreazqeWFpeioveelmuagoSIsCiAgInNob3J0X25hbWUiOiAi5rS754mU6KiI566XIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiIzJkNTAxNiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1UWXdJaUJvWldsbmFIUTlJakUyTUNJZ2RtbGxkMEp2ZUQwaU1DQXdJREUyTUNBd0lHUmxQU0JoSWlCbWFXeHNQU0lqTW1RMU1ERTJJaUErUEhKbFkzUWdlRDBpTUNJZ2VUMGlNQ0lnZDJsa2RHZzlJakUyTUNJZ2FHVnBaMmgwUFNJeE5qQWlMejQ4ZEdWNGRDQjRQU0kwTUNJZ2VUMGlOekFpSUhSbGVIUXRZVzVqYUc5eVBTSmphMnhaZDJWc2JDSWdabWxzYkQwaUkzZG9hWFJsU1YwMmFubGlSRnBoZWpCalp6OGpZeFpaSUQ0Mk16bE9WRmhJSUZKTFVFZHNkWEp4VEZCcFFXdE5aV051YXl4ak16QnFVR3RrTlVWMGQyNXdWWEEzYVUxTlJFYz08L3RleHQ+PC9zdmc+IiwKICAgICAgInNpemVzIjogIjE2MHgxNjAiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ==">
+    <title>活性炭注入計算機</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #2d5016 0%, #4a6741 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 30px 20px;
+        max-width: 450px;
+        width: 100%;
+    }
+
+    h1 {
+        color: #2d5016;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+    .input-section {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    label {
+        color: #34495e;
+        font-weight: 500;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    input, select {
+        padding: 12px 16px;
+        border: 2px solid #e1e8ed;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: #2d5016;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
+    }
+
+    .calculate-btn {
+        background: linear-gradient(135deg, #2d5016 0%, #4a6741 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: block;
+        margin: 20px auto;
+        box-shadow: 0 8px 20px rgba(45, 80, 22, 0.3);
+    }
+
+    .calculate-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(45, 80, 22, 0.4);
+    }
+
+    .results {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 30px;
+    }
+
+    .results h2 {
+        color: #2d5016;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 22px;
+    }
+
+    .result-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #2d5016;
+    }
+
+    .main-result {
+        background: linear-gradient(135deg, #f0f6eb 0%, #e6f0dc 100%);
+        border-left: 6px solid #2d5016;
+        box-shadow: 0 6px 20px rgba(45, 80, 22, 0.15);
+        transform: scale(1.02);
+    }
+
+    .sub-result {
+        opacity: 0.7;
+        border-left: 3px solid #adb5bd;
+    }
+
+    .result-title {
+        color: #495057;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .result-value {
+        color: #2d5016;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .main-value {
+        color: #2d5016;
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .sub-value {
+        color: #6c757d;
+        font-size: 20px;
+    }
+
+    .result-unit {
+        color: #6c757d;
+        font-size: 14px;
+        margin-left: 5px;
+    }
+
+    .calculation-info {
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 15px;
+        font-size: 12px;
+        color: #1976d2;
+    }
+
+    .formula-info {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+        font-size: 12px;
+        color: #856404;
+    }
+
+    @media (max-width: 480px) {
+        body {
+            padding: 10px;
+        }
+        
+        .container {
+            padding: 25px 15px;
+            border-radius: 15px;
+        }
+        
+        h1 {
+            font-size: 22px;
+            margin-bottom: 25px;
+        }
+        
+        input, select {
+            padding: 14px 16px;
+            font-size: 16px;
+        }
+        
+        .calculate-btn {
+            padding: 16px 30px;
+            font-size: 16px;
+            border-radius: 30px;
+            margin: 25px auto;
+        }
+        
+        .result-card {
+            padding: 18px;
+        }
+        
+        .result-value {
+            font-size: 22px;
+        }
+    }
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <h1>🌿 活性炭注入計算機</h1>
+
+    <div class="input-section">
+        <div class="input-group">
+            <label for="flow-rate">原水流入量（選択式）</label>
+            <select id="flow-rate">
+                <option value="160">160 ㎥/h</option>
+                <option value="140">140 ㎥/h</option>
+            </select>
+        </div>
+        
+        <div class="input-group">
+            <label for="bag-count">活性炭投入袋数（1～10袋）</label>
+            <input type="number" id="bag-count" min="1" max="10" value="1" placeholder="例: 1">
+        </div>
+        
+        <div class="input-group">
+            <label for="target-concentration">目標活性炭濃度（mg/L）</label>
+            <input type="number" id="target-concentration" step="0.1" placeholder="例: 10.0">
+        </div>
+    </div>
+    
+    <button class="calculate-btn" onclick="calculate()">計算実行</button>
+    
+    <div class="results" id="results" style="display: none;">
+        <h2>🎯 活性炭注入計算結果</h2>
+        <div class="result-grid">
+            <div class="result-card main-result">
+                <div class="result-title">🎯 1分間の注入量</div>
+                <div class="result-value main-value" id="injection-volume">--</div>
+                <span class="result-unit">ml/分</span>
+            </div>
+            
+            <div class="result-card main-result">
+                <div class="result-title">⏱️ 500Lタンクの持続時間</div>
+                <div class="result-value main-value" id="tank-duration">--</div>
+                <span class="result-unit"></span>
+            </div>
+            
+            <div class="result-card sub-result">
+                <div class="result-title">参考: スラリー濃度</div>
+                <div class="result-value sub-value" id="slurry-concentration">--</div>
+                <span class="result-unit">%</span>
+            </div>
+            
+            <div class="result-card sub-result">
+                <div class="result-title">参考: 活性炭重量</div>
+                <div class="result-value sub-value" id="carbon-weight">--</div>
+                <span class="result-unit">kg</span>
+            </div>
+        </div>
+        
+        <div class="calculation-info" id="calculation-info"></div>
+        
+        <div class="formula-info">
+            <strong>📋 計算式</strong><br>
+            🎯 <strong>1分間注入量（ml/分） = 目標濃度 × 原水流量 ÷ スラリー中活性炭濃度 ÷ 60</strong><br>
+            ⏱️ <strong>持続時間 = 500L ÷ (1分間注入量 × 60)</strong><br><br>
+            
+            <strong>🧮 詳細計算:</strong><br>
+            • 活性炭重量 = 袋数 × 10kg × 50%<br>
+            • スラリー濃度 = 活性炭重量 ÷ 500L × 100<br>
+            • スラリー中活性炭濃度 = スラリー濃度 × 10,000 (mg/L変換)<br><br>
+            
+            <strong>💡 前提条件:</strong><br>
+            • 活性炭: wet50（水分50%、活性炭50%）<br>
+            • 1袋 = 10kg<br>
+            • タンク容量 = 500L<br>
+            • 注入方式: 着水井上部から定量注入
+        </div>
+        
+        <!-- 問い合わせ先 -->
+        <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+            <small style="color: #6c757d; font-size: 11px;">問い合わせ先：大高宏</small>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 開発者: 大高宏
+    function calculate() {
+        // 入力値の取得
+        const flowRate = parseFloat(document.getElementById('flow-rate').value);
+        const bagCount = parseInt(document.getElementById('bag-count').value);
+        const targetConcentration = parseFloat(document.getElementById('target-concentration').value);
+        
+        // バリデーション
+        if (isNaN(flowRate) || isNaN(bagCount) || isNaN(targetConcentration)) {
+            alert('必須項目をすべて正しく入力してください。');
+            return;
+        }
+
+        if (bagCount < 1 || bagCount > 10) {
+            alert('活性炭投入袋数は1～10袋の範囲で入力してください。');
+            return;
+        }
+
+        if (targetConcentration <= 0) {
+            alert('目標活性炭濃度は正の値を入力してください。');
+            return;
+        }
+
+        // 活性炭計算の定数
+        const bagWeight = 10; // kg/袋
+        const carbonRatio = 0.5; // 50%が活性炭
+        const tankVolume = 500; // L
+
+        // 計算
+        // 1. 活性炭重量（kg）
+        const carbonWeight = bagCount * bagWeight * carbonRatio;
+        
+        // 2. スラリー濃度（%）
+        const slurryConcentration = (carbonWeight / tankVolume) * 100;
+        
+        // 3. スラリー中活性炭濃度（mg/L）
+        const slurryCarbonConcentration = slurryConcentration * 10000; // % → mg/L変換
+        
+        // 4. 1分間の注入量（ml/分）
+        const injectionVolumePerMin = (targetConcentration * flowRate * 1000) / slurryCarbonConcentration / 60;
+        
+        // 5. 500Lタンクの持続時間
+        const tankDurationMinutes = tankVolume / injectionVolumePerMin;
+        const tankDurationHours = Math.floor(tankDurationMinutes / 60);
+        const remainingMinutes = Math.round(tankDurationMinutes % 60);
+
+        // 結果の表示
+        document.getElementById('injection-volume').textContent = injectionVolumePerMin.toFixed(1);
+        
+        // 持続時間の表示形式を決定
+        let durationDisplay;
+        if (tankDurationHours > 0) {
+            durationDisplay = `${tankDurationHours}時間${remainingMinutes}分`;
+        } else {
+            durationDisplay = `${remainingMinutes}分`;
+        }
+        document.getElementById('tank-duration').textContent = durationDisplay;
+        
+        document.getElementById('slurry-concentration').textContent = slurryConcentration.toFixed(2);
+        document.getElementById('carbon-weight').textContent = carbonWeight.toFixed(1);
+        
+        // 計算詳細情報
+        document.getElementById('calculation-info').textContent = 
+            `袋数: ${bagCount}袋 | 流量: ${flowRate}㎥/h | 目標濃度: ${targetConcentration}mg/L | ` +
+            `スラリー中活性炭: ${slurryCarbonConcentration.toFixed(0)}mg/L | 持続時間: ${tankDurationMinutes.toFixed(0)}分`;
+
+        // 結果セクションを表示
+        document.getElementById('results').style.display = 'block';
+        
+        // 結果セクションまでスムーズスクロール
+        document.getElementById('results').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }
+
+    // Enterキーで計算実行
+    document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            calculate();
+        }
+    });
+
+    // Service Worker登録
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            const swCode = `
+                const CACHE_NAME = 'kasseitan-calc-v1';
+                const urlsToCache = [
+                    './',
+                    './活性炭注入計算機.html'
+                ];
+
+                // インストール時にキャッシュを作成
+                self.addEventListener('install', (event) => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then((cache) => {
+                                return cache.addAll(urlsToCache);
+                            })
+                    );
+                    self.skipWaiting();
+                });
+
+                // アクティベート時に古いキャッシュを削除
+                self.addEventListener('activate', (event) => {
+                    event.waitUntil(
+                        caches.keys().then((cacheNames) => {
+                            return Promise.all(
+                                cacheNames.map((cacheName) => {
+                                    if (cacheName !== CACHE_NAME) {
+                                        return caches.delete(cacheName);
+                                    }
+                                })
+                            );
+                        })
+                    );
+                    self.clients.claim();
+                });
+
+                // ネットワークリクエストをキャッシュファーストで処理
+                self.addEventListener('fetch', (event) => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then((response) => {
+                                // キャッシュにあればそれを返す
+                                if (response) {
+                                    return response;
+                                }
+                                // なければネットワークから取得
+                                return fetch(event.request);
+                            })
+                    );
+                });
+            `;
+
+            // Data URIでService Workerを登録
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            
+            navigator.serviceWorker.register(swUrl)
+                .then((registration) => {
+                    console.log('Service Worker登録成功:', registration.scope);
+                })
+                .catch((error) => {
+                    console.log('Service Worker登録失敗:', error);
+                });
+        });
+    }
+
+    // PWA - シンプルなインストール促進
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+    });
+</script>
+
+</body>
+</html>
