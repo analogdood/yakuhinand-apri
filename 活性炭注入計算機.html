@@ -255,7 +255,7 @@
         
         <!-- スラリー注入モード用入力 -->
         <div class="input-group" id="slurry-inputs">
-            <label for="bag-count">活性炭投入袋数（1～10袋）</label>
+            <label for="bag-count">500Lタンクに溶かす袋数（1～10袋）</label>
             <input type="number" id="bag-count" min="1" max="10" value="1" placeholder="例: 1">
         </div>
         
@@ -394,7 +394,7 @@
         }
 
         if (bagCount < 1 || bagCount > 10) {
-            alert('活性炭投入袋数は1～10袋の範囲で入力してください。');
+            alert('500Lタンクに溶かす袋数は1～10袋の範囲で入力してください。');
             return;
         }
 
