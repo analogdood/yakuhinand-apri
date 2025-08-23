@@ -213,18 +213,6 @@
         <p class="subtitle">浄水場での薬品注入量を正確に計算します</p>
 
         <div class="tools-grid">
-            <!-- PAC注入量計算 -->
-            <a href="第一第二浄水場薬品注入量計算.html" class="tool-card pac-card">
-                <span class="tool-icon">💧</span>
-                <h3 class="tool-title">PAC注入量計算</h3>
-                <p class="tool-description">第一・第二浄水場でのPAC（ポリ塩化アルミニウム）と苛性ソーダの注入量を計算します。</p>
-                <div class="tool-features">
-                    <div class="feature">濁度に応じた自動計算</div>
-                    <div class="feature">PAC補正値対応</div>
-                    <div class="feature">注入率・注入量を同時表示</div>
-                </div>
-            </a>
-
             <!-- 活性炭注入計算 -->
             <a href="活性炭注入計算機.html" class="tool-card carbon-card">
                 <span class="tool-icon">🌿</span>
@@ -232,8 +220,9 @@
                 <p class="tool-description">活性炭設備のない浄水場での活性炭スラリー注入量を計算します。</p>
                 <div class="tool-features">
                     <div class="feature">500Lタンクでの注入計算</div>
-                    <div class="feature">1分間注入量を表示</div>
-                    <div class="feature">タンク持続時間を算出</div>
+                    <div class="feature">3つの計算モード</div>
+                    <div class="feature">タンク持続時間算出</div>
+                    <div class="feature">直接投入量逆算</div>
                 </div>
             </a>
 
@@ -246,15 +235,15 @@
                     <div class="feature">詳細定数設定</div>
                     <div class="feature">設定の保存・復元</div>
                     <div class="feature">設定インポート/エクスポート</div>
+                    <div class="feature">PAC・苛性ソーダ計算</div>
                 </div>
             </a>
         </div>
 
         <div class="footer">
             <div class="footer-links">
-                <a href="第一第二浄水場薬品注入量計算.html" class="footer-link">PAC注入量計算</a>
                 <a href="活性炭注入計算機.html" class="footer-link">活性炭注入計算</a>
-                <a href="薬品注入率計算機.html" class="footer-link">詳細設定版</a>
+                <a href="薬品注入率計算機.html" class="footer-link">薬品注入率計算機</a>
             </div>
             
             <!-- ライセンス情報 -->
@@ -296,7 +285,6 @@
                 const urlsToCache = [
                     './',
                     './index.html',
-                    './第一第二浄水場薬品注入量計算.html',
                     './活性炭注入計算機.html',
                     './薬品注入率計算機.html'
                 ];
