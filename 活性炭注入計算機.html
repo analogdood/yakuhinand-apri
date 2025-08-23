@@ -236,41 +236,70 @@
         <h1>🌿 活性炭注入計算機</h1>
 
     <div class="input-section">
+        <!-- 計算モード選択 -->
+        <div class="input-group">
+            <label for="calc-mode">計算モード</label>
+            <select id="calc-mode" onchange="toggleMode()">
+                <option value="slurry">スラリー注入（袋数→注入量）</option>
+                <option value="direct">直接投入（濃度→必要量）</option>
+            </select>
+        </div>
+        
         <div class="input-group">
             <label for="flow-rate">原水流入量（選択式）</label>
             <select id="flow-rate">
                 <option value="160">160 ㎥/h</option>
                 <option value="140">140 ㎥/h</option>
-                <option value="direct">活性炭を直接投入</option>
             </select>
         </div>
         
-        <div class="input-group">
+        <!-- スラリー注入モード用入力 -->
+        <div class="input-group" id="slurry-inputs">
             <label for="bag-count">活性炭投入袋数（1～10袋）</label>
             <input type="number" id="bag-count" min="1" max="10" value="1" placeholder="例: 1">
         </div>
         
-        <div class="input-group">
+        <div class="input-group" id="slurry-target">
             <label for="target-concentration">目標活性炭濃度（mg/L）</label>
             <input type="number" id="target-concentration" step="0.1" placeholder="例: 10.0">
+        </div>
+        
+        <!-- 直接投入モード用入力 -->
+        <div class="input-group" id="direct-inputs" style="display: none;">
+            <label for="direct-target-concentration">目標活性炭濃度（mg/L）</label>
+            <input type="number" id="direct-target-concentration" step="0.1" placeholder="例: 2.0">
         </div>
     </div>
     
     <button class="calculate-btn" onclick="calculate()">計算実行</button>
     
     <div class="results" id="results" style="display: none;">
-        <h2>🎯 活性炭注入計算結果</h2>
+        <h2 id="result-title">🎯 活性炭注入計算結果</h2>
         <div class="result-grid">
-            <div class="result-card main-result">
+            <!-- スラリー注入モード用結果 -->
+            <div class="result-card main-result" id="slurry-result-1">
                 <div class="result-title">🎯 1分間の注入量</div>
                 <div class="result-value main-value" id="injection-volume">--</div>
                 <span class="result-unit">ml/分</span>
             </div>
             
-            <div class="result-card main-result">
+            <div class="result-card main-result" id="slurry-result-2">
                 <div class="result-title">⏱️ 500Lタンクの持続時間</div>
                 <div class="result-value main-value" id="tank-duration">--</div>
                 <span class="result-unit"></span>
+            </div>
+            
+            <!-- 直接投入モード用結果 -->
+            <div class="result-card main-result" id="direct-result-1" style="display: none;">
+                <div class="result-title">🎯 1時間あたりの必要量</div>
+                <div class="result-value main-value" id="direct-required-amount">--</div>
+                <span class="result-unit">g/時</span>
+            </div>
+            
+            <div class="result-card main-result" id="direct-result-2" style="display: none;">
+                <div class="result-title">💡 参考：袋数換算</div>
+                <div class="result-value main-value" id="direct-bag-equivalent">--</div>
+                <span class="result-unit">袋/日</span>
             </div>
             
             <div class="result-card sub-result">
@@ -320,22 +349,47 @@
 
 <script>
     // 開発者: 大高宏
+    
+    // モード切り替え機能
+    function toggleMode() {
+        const mode = document.getElementById('calc-mode').value;
+        const isSlurry = mode === 'slurry';
+        
+        // 入力項目の表示切り替え
+        document.getElementById('slurry-inputs').style.display = isSlurry ? 'block' : 'none';
+        document.getElementById('slurry-target').style.display = isSlurry ? 'block' : 'none';
+        document.getElementById('direct-inputs').style.display = isSlurry ? 'none' : 'block';
+        
+        // 結果表示の切り替え
+        document.getElementById('slurry-result-1').style.display = isSlurry ? 'block' : 'none';
+        document.getElementById('slurry-result-2').style.display = isSlurry ? 'block' : 'none';
+        document.getElementById('direct-result-1').style.display = isSlurry ? 'none' : 'block';
+        document.getElementById('direct-result-2').style.display = isSlurry ? 'none' : 'block';
+        
+        // タイトル変更
+        document.getElementById('result-title').textContent = isSlurry ? 
+            '🎯 活性炭注入計算結果' : '🎯 直接投入計算結果';
+    }
+
     function calculate() {
-        // 入力値の取得
-        const flowRateValue = document.getElementById('flow-rate').value;
+        const mode = document.getElementById('calc-mode').value;
+        const flowRate = parseFloat(document.getElementById('flow-rate').value);
+        
+        if (mode === 'slurry') {
+            calculateSlurry(flowRate);
+        } else {
+            calculateDirect(flowRate);
+        }
+    }
+    
+    // スラリー注入の計算
+    function calculateSlurry(flowRate) {
         const bagCount = parseInt(document.getElementById('bag-count').value);
         const targetConcentration = parseFloat(document.getElementById('target-concentration').value);
-        const isDirect = flowRateValue === 'direct';
-        const flowRate = isDirect ? 0 : parseFloat(flowRateValue);
         
         // バリデーション
-        if (!isDirect && (isNaN(flowRate) || isNaN(bagCount) || isNaN(targetConcentration))) {
+        if (isNaN(flowRate) || isNaN(bagCount) || isNaN(targetConcentration)) {
             alert('必須項目をすべて正しく入力してください。');
-            return;
-        }
-        
-        if (isDirect && isNaN(bagCount)) {
-            alert('活性炭投入袋数を正しく入力してください。');
             return;
         }
 
@@ -344,7 +398,7 @@
             return;
         }
 
-        if (!isDirect && targetConcentration <= 0) {
+        if (targetConcentration <= 0) {
             alert('目標活性炭濃度は正の値を入力してください。');
             return;
         }
@@ -354,74 +408,93 @@
         const carbonRatio = 0.5; // 50%が活性炭
         const tankVolume = 500; // L
 
-        // 計算
+        // スラリー注入の計算
         // 1. 活性炭重量（kg）
         const carbonWeight = bagCount * bagWeight * carbonRatio;
         
-        if (isDirect) {
-            // 直接投入の場合
-            document.getElementById('injection-volume').textContent = '直接投入';
-            document.getElementById('injection-volume-hour').textContent = '直接投入';
-            document.getElementById('tank-duration').textContent = '直接投入のため該当なし';
-            document.getElementById('slurry-concentration').textContent = '該当なし';
-            document.getElementById('carbon-weight').textContent = carbonWeight.toFixed(1);
-            
-            // 計算詳細情報
-            document.getElementById('calculation-info').textContent = 
-                `袋数: ${bagCount}袋 | 投入方式: 直接投入 | 活性炭重量: ${carbonWeight}kg`;
-                
-        } else {
-            // スラリー注入の場合
-            // 2. スラリー濃度（%）
-            const slurryConcentration = (carbonWeight / tankVolume) * 100;
-            
-            // 3. スラリー中活性炭濃度（mg/L）
-            // 実用的な濃度計算：有効活性炭濃度を考慮
-            const slurryCarbonConcentration = slurryConcentration * 10; // 実用的な有効濃度係数を適用
-            
-            // 4. 1分間の注入量（ml/分）
-            // 実用的な計算式：経験的係数を適用
-            const injectionVolumePerMinRaw = (targetConcentration * flowRate * 1000) / slurryCarbonConcentration / 60; // ml/分
-            const injectionVolumePerMin = Math.round(injectionVolumePerMinRaw / 10) * 10; // 10の桁で丸める
-            
-            // 5. 1時間あたりの注入量（L/時）
-            const injectionVolumePerHour = (injectionVolumePerMin * 60) / 1000; // ml/分 → L/時
-            
-            // 6. 500Lタンクの持続時間
-            const tankDurationMinutes = (tankVolume * 1000) / injectionVolumePerMin; // ml単位で計算
-            const tankDurationHours = Math.floor(tankDurationMinutes / 60);
-            const remainingMinutes = Math.round(tankDurationMinutes % 60);
+        // 2. スラリー濃度（%）
+        const slurryConcentration = (carbonWeight / tankVolume) * 100;
+        
+        // 3. スラリー中活性炭濃度（mg/L）
+        const slurryCarbonConcentration = slurryConcentration * 10;
+        
+        // 4. 1分間の注入量（ml/分）
+        const injectionVolumePerMinRaw = (targetConcentration * flowRate * 1000) / slurryCarbonConcentration / 60;
+        const injectionVolumePerMin = Math.round(injectionVolumePerMinRaw / 10) * 10;
+        
+        // 5. 1時間あたりの注入量（L/時）
+        const injectionVolumePerHour = (injectionVolumePerMin * 60) / 1000;
+        
+        // 6. 500Lタンクの持続時間
+        const tankDurationMinutes = (tankVolume * 1000) / injectionVolumePerMin;
+        const tankDurationHours = Math.floor(tankDurationMinutes / 60);
+        const remainingMinutes = Math.round(tankDurationMinutes % 60);
 
-            // 結果の表示
-            document.getElementById('injection-volume').textContent = injectionVolumePerMin.toFixed(0);
-            document.getElementById('injection-volume-hour').textContent = injectionVolumePerHour.toFixed(2);
-            
-            // 持続時間の表示形式を決定
-            let durationDisplay;
-            if (tankDurationHours > 0) {
-                durationDisplay = `${tankDurationHours}時間${remainingMinutes}分`;
-            } else {
-                durationDisplay = `${remainingMinutes}分`;
-            }
-            document.getElementById('tank-duration').textContent = durationDisplay;
-            
-            document.getElementById('slurry-concentration').textContent = slurryConcentration.toFixed(2);
-            document.getElementById('carbon-weight').textContent = carbonWeight.toFixed(1);
-            
-            // 計算詳細情報
-            document.getElementById('calculation-info').textContent = 
-                `袋数: ${bagCount}袋 | 流量: ${flowRate}㎥/h | 目標濃度: ${targetConcentration}mg/L | ` +
-                `スラリー中活性炭: ${slurryCarbonConcentration.toFixed(0)}mg/L | 持続時間: ${tankDurationMinutes.toFixed(0)}分`;
+        // 結果の表示
+        document.getElementById('injection-volume').textContent = injectionVolumePerMin.toFixed(0);
+        document.getElementById('injection-volume-hour').textContent = injectionVolumePerHour.toFixed(2);
+        
+        let durationDisplay;
+        if (tankDurationHours > 0) {
+            durationDisplay = `${tankDurationHours}時間${remainingMinutes}分`;
+        } else {
+            durationDisplay = `${remainingMinutes}分`;
         }
+        document.getElementById('tank-duration').textContent = durationDisplay;
+        
+        document.getElementById('slurry-concentration').textContent = slurryConcentration.toFixed(2);
+        document.getElementById('carbon-weight').textContent = carbonWeight.toFixed(1);
+        
+        // 計算詳細情報
+        document.getElementById('calculation-info').textContent = 
+            `袋数: ${bagCount}袋 | 流量: ${flowRate}㎥/h | 目標濃度: ${targetConcentration}mg/L | ` +
+            `スラリー中活性炭: ${slurryCarbonConcentration.toFixed(0)}mg/L | 持続時間: ${tankDurationMinutes.toFixed(0)}分`;
 
         // 結果セクションを表示
         document.getElementById('results').style.display = 'block';
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    // 直接投入の計算
+    function calculateDirect(flowRate) {
+        const targetConcentration = parseFloat(document.getElementById('direct-target-concentration').value);
         
-        // 結果セクションまでスムーズスクロール
-        document.getElementById('results').scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-        });
+        // バリデーション
+        if (isNaN(flowRate) || isNaN(targetConcentration)) {
+            alert('必須項目をすべて正しく入力してください。');
+            return;
+        }
+        
+        if (targetConcentration <= 0) {
+            alert('目標活性炭濃度は正の値を入力してください。');
+            return;
+        }
+        
+        // 直接投入の計算
+        const carbonRatio = 0.5; // wet50の活性炭比率
+        
+        // 1時間あたりの純活性炭必要量 (g/h)
+        const pureCarbonNeeded = targetConcentration * flowRate * 1000; // mg/L × ㎥/h × 1000L/㎥ = mg/h
+        const pureCarbonNeededGrams = pureCarbonNeeded / 1000; // mg → g
+        
+        // 1時間あたりのwet50必要量 (g/h)
+        const wet50Needed = pureCarbonNeededGrams / carbonRatio;
+        
+        // 袋数換算 (袋/日)
+        const bagsPerDay = (wet50Needed * 24) / (10 * 1000); // 1袋=10kg=10,000g
+        
+        // 結果の表示
+        document.getElementById('direct-required-amount').textContent = wet50Needed.toFixed(0);
+        document.getElementById('direct-bag-equivalent').textContent = bagsPerDay.toFixed(2);
+        
+        // 計算詳細情報
+        document.getElementById('calculation-info').textContent = 
+            `流量: ${flowRate}㎥/h | 目標濃度: ${targetConcentration}mg/L | ` +
+            `純活性炭: ${pureCarbonNeededGrams.toFixed(0)}g/h | wet50: ${wet50Needed.toFixed(0)}g/h`;
+            
+        // 結果セクションを表示
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     // Enterキーで計算実行
