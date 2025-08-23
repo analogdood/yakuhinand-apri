@@ -327,19 +327,19 @@
                 <span class="result-unit">ml/分</span>
             </div>
             
-            <div class="result-card sub-result">
+            <div class="result-card sub-result" id="ref-injection-hour">
                 <div class="result-title">参考: 1時間あたり注入量</div>
                 <div class="result-value sub-value" id="injection-volume-hour">--</div>
                 <span class="result-unit">L/時</span>
             </div>
             
-            <div class="result-card sub-result">
+            <div class="result-card sub-result" id="ref-slurry-concentration">
                 <div class="result-title">参考: スラリー濃度</div>
                 <div class="result-value sub-value" id="slurry-concentration">--</div>
                 <span class="result-unit">%</span>
             </div>
             
-            <div class="result-card sub-result">
+            <div class="result-card sub-result" id="ref-carbon-weight">
                 <div class="result-title">参考: 活性炭重量</div>
                 <div class="result-value sub-value" id="carbon-weight">--</div>
                 <span class="result-unit">kg</span>
@@ -394,12 +394,20 @@
         document.getElementById('duration-result-1').style.display = 'none';
         document.getElementById('duration-result-2').style.display = 'none';
         
+        // 参考情報の表示制御
+        document.getElementById('ref-injection-hour').style.display = 'none';
+        document.getElementById('ref-slurry-concentration').style.display = 'none';
+        document.getElementById('ref-carbon-weight').style.display = 'none';
+        
         // 選択されたモードに応じて表示
         if (mode === 'slurry') {
             document.getElementById('slurry-inputs').style.display = 'block';
             document.getElementById('slurry-target').style.display = 'block';
             document.getElementById('slurry-result-1').style.display = 'block';
             document.getElementById('slurry-result-2').style.display = 'block';
+            document.getElementById('ref-injection-hour').style.display = 'block';
+            document.getElementById('ref-slurry-concentration').style.display = 'block';
+            document.getElementById('ref-carbon-weight').style.display = 'block';
             document.getElementById('result-title').textContent = '🎯 活性炭注入計算結果';
         } else if (mode === 'direct') {
             document.getElementById('direct-inputs').style.display = 'block';
@@ -411,6 +419,9 @@
             document.getElementById('duration-inputs2').style.display = 'block';
             document.getElementById('duration-result-1').style.display = 'block';
             document.getElementById('duration-result-2').style.display = 'block';
+            document.getElementById('ref-injection-hour').style.display = 'block';
+            document.getElementById('ref-slurry-concentration').style.display = 'block';
+            document.getElementById('ref-carbon-weight').style.display = 'block';
             document.getElementById('result-title').textContent = '🎯 タンク持続時間計算結果';
         }
     }
@@ -584,9 +595,17 @@
         // 5. 達成濃度（mg/L）を逆算
         const achievedConcentration = (injectionVolumePerMin * slurryCarbonConcentration * 60) / (flowRate * 1000);
         
+        // 6. 1時間あたりの注入量（L/時）
+        const injectionVolumePerHour = (injectionVolumePerMin * 60) / 1000; // ml/分 → L/時
+        
         // 結果の表示
         document.getElementById('achieved-concentration').textContent = achievedConcentration.toFixed(1);
         document.getElementById('injection-rate').textContent = Math.round(injectionVolumePerMin / 10) * 10; // 10の桁で丸める
+        
+        // 参考情報の表示
+        document.getElementById('injection-volume-hour').textContent = injectionVolumePerHour.toFixed(2);
+        document.getElementById('slurry-concentration').textContent = slurryConcentration.toFixed(2);
+        document.getElementById('carbon-weight').textContent = carbonWeight.toFixed(1);
         
         // 計算詳細情報
         document.getElementById('calculation-info').textContent = 
