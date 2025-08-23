@@ -241,6 +241,7 @@
             <select id="flow-rate">
                 <option value="160">160 ㎥/h</option>
                 <option value="140">140 ㎥/h</option>
+                <option value="direct">活性炭を直接投入</option>
             </select>
         </div>
         
@@ -321,13 +322,20 @@
     // 開発者: 大高宏
     function calculate() {
         // 入力値の取得
-        const flowRate = parseFloat(document.getElementById('flow-rate').value);
+        const flowRateValue = document.getElementById('flow-rate').value;
         const bagCount = parseInt(document.getElementById('bag-count').value);
         const targetConcentration = parseFloat(document.getElementById('target-concentration').value);
+        const isDirect = flowRateValue === 'direct';
+        const flowRate = isDirect ? 0 : parseFloat(flowRateValue);
         
         // バリデーション
-        if (isNaN(flowRate) || isNaN(bagCount) || isNaN(targetConcentration)) {
+        if (!isDirect && (isNaN(flowRate) || isNaN(bagCount) || isNaN(targetConcentration))) {
             alert('必須項目をすべて正しく入力してください。');
+            return;
+        }
+        
+        if (isDirect && isNaN(bagCount)) {
+            alert('活性炭投入袋数を正しく入力してください。');
             return;
         }
 
@@ -336,7 +344,7 @@
             return;
         }
 
-        if (targetConcentration <= 0) {
+        if (!isDirect && targetConcentration <= 0) {
             alert('目標活性炭濃度は正の値を入力してください。');
             return;
         }
@@ -350,46 +358,61 @@
         // 1. 活性炭重量（kg）
         const carbonWeight = bagCount * bagWeight * carbonRatio;
         
-        // 2. スラリー濃度（%）
-        const slurryConcentration = (carbonWeight / tankVolume) * 100;
-        
-        // 3. スラリー中活性炭濃度（mg/L）
-        // 実用的な濃度計算：有効活性炭濃度を考慮
-        const slurryCarbonConcentration = slurryConcentration * 10; // 実用的な有効濃度係数を適用
-        
-        // 4. 1分間の注入量（ml/分）
-        // 実用的な計算式：経験的係数を適用
-        const injectionVolumePerMinRaw = (targetConcentration * flowRate * 1000) / slurryCarbonConcentration / 60; // ml/分
-        const injectionVolumePerMin = Math.round(injectionVolumePerMinRaw / 10) * 10; // 10の桁で丸める
-        
-        // 5. 1時間あたりの注入量（L/時）
-        const injectionVolumePerHour = (injectionVolumePerMin * 60) / 1000; // ml/分 → L/時
-        
-        // 6. 500Lタンクの持続時間
-        const tankDurationMinutes = (tankVolume * 1000) / injectionVolumePerMin; // ml単位で計算
-        const tankDurationHours = Math.floor(tankDurationMinutes / 60);
-        const remainingMinutes = Math.round(tankDurationMinutes % 60);
-
-        // 結果の表示
-        document.getElementById('injection-volume').textContent = injectionVolumePerMin.toFixed(0);
-        document.getElementById('injection-volume-hour').textContent = injectionVolumePerHour.toFixed(2);
-        
-        // 持続時間の表示形式を決定
-        let durationDisplay;
-        if (tankDurationHours > 0) {
-            durationDisplay = `${tankDurationHours}時間${remainingMinutes}分`;
+        if (isDirect) {
+            // 直接投入の場合
+            document.getElementById('injection-volume').textContent = '直接投入';
+            document.getElementById('injection-volume-hour').textContent = '直接投入';
+            document.getElementById('tank-duration').textContent = '直接投入のため該当なし';
+            document.getElementById('slurry-concentration').textContent = '該当なし';
+            document.getElementById('carbon-weight').textContent = carbonWeight.toFixed(1);
+            
+            // 計算詳細情報
+            document.getElementById('calculation-info').textContent = 
+                `袋数: ${bagCount}袋 | 投入方式: 直接投入 | 活性炭重量: ${carbonWeight}kg`;
+                
         } else {
-            durationDisplay = `${remainingMinutes}分`;
+            // スラリー注入の場合
+            // 2. スラリー濃度（%）
+            const slurryConcentration = (carbonWeight / tankVolume) * 100;
+            
+            // 3. スラリー中活性炭濃度（mg/L）
+            // 実用的な濃度計算：有効活性炭濃度を考慮
+            const slurryCarbonConcentration = slurryConcentration * 10; // 実用的な有効濃度係数を適用
+            
+            // 4. 1分間の注入量（ml/分）
+            // 実用的な計算式：経験的係数を適用
+            const injectionVolumePerMinRaw = (targetConcentration * flowRate * 1000) / slurryCarbonConcentration / 60; // ml/分
+            const injectionVolumePerMin = Math.round(injectionVolumePerMinRaw / 10) * 10; // 10の桁で丸める
+            
+            // 5. 1時間あたりの注入量（L/時）
+            const injectionVolumePerHour = (injectionVolumePerMin * 60) / 1000; // ml/分 → L/時
+            
+            // 6. 500Lタンクの持続時間
+            const tankDurationMinutes = (tankVolume * 1000) / injectionVolumePerMin; // ml単位で計算
+            const tankDurationHours = Math.floor(tankDurationMinutes / 60);
+            const remainingMinutes = Math.round(tankDurationMinutes % 60);
+
+            // 結果の表示
+            document.getElementById('injection-volume').textContent = injectionVolumePerMin.toFixed(0);
+            document.getElementById('injection-volume-hour').textContent = injectionVolumePerHour.toFixed(2);
+            
+            // 持続時間の表示形式を決定
+            let durationDisplay;
+            if (tankDurationHours > 0) {
+                durationDisplay = `${tankDurationHours}時間${remainingMinutes}分`;
+            } else {
+                durationDisplay = `${remainingMinutes}分`;
+            }
+            document.getElementById('tank-duration').textContent = durationDisplay;
+            
+            document.getElementById('slurry-concentration').textContent = slurryConcentration.toFixed(2);
+            document.getElementById('carbon-weight').textContent = carbonWeight.toFixed(1);
+            
+            // 計算詳細情報
+            document.getElementById('calculation-info').textContent = 
+                `袋数: ${bagCount}袋 | 流量: ${flowRate}㎥/h | 目標濃度: ${targetConcentration}mg/L | ` +
+                `スラリー中活性炭: ${slurryCarbonConcentration.toFixed(0)}mg/L | 持続時間: ${tankDurationMinutes.toFixed(0)}分`;
         }
-        document.getElementById('tank-duration').textContent = durationDisplay;
-        
-        document.getElementById('slurry-concentration').textContent = slurryConcentration.toFixed(2);
-        document.getElementById('carbon-weight').textContent = carbonWeight.toFixed(1);
-        
-        // 計算詳細情報
-        document.getElementById('calculation-info').textContent = 
-            `袋数: ${bagCount}袋 | 流量: ${flowRate}㎥/h | 目標濃度: ${targetConcentration}mg/L | ` +
-            `スラリー中活性炭: ${slurryCarbonConcentration.toFixed(0)}mg/L | 持続時間: ${tankDurationMinutes.toFixed(0)}分`;
 
         // 結果セクションを表示
         document.getElementById('results').style.display = 'block';
