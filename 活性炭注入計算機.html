@@ -273,6 +273,12 @@
             </div>
             
             <div class="result-card sub-result">
+                <div class="result-title">参考: 1時間あたり注入量</div>
+                <div class="result-value sub-value" id="injection-volume-hour">--</div>
+                <span class="result-unit">L/時</span>
+            </div>
+            
+            <div class="result-card sub-result">
                 <div class="result-title">参考: スラリー濃度</div>
                 <div class="result-value sub-value" id="slurry-concentration">--</div>
                 <span class="result-unit">%</span>
@@ -356,13 +362,17 @@
         const injectionVolumePerMinRaw = (targetConcentration * flowRate * 1000) / slurryCarbonConcentration / 60; // ml/分
         const injectionVolumePerMin = Math.round(injectionVolumePerMinRaw / 10) * 10; // 10の桁で丸める
         
-        // 5. 500Lタンクの持続時間
+        // 5. 1時間あたりの注入量（L/時）
+        const injectionVolumePerHour = (injectionVolumePerMin * 60) / 1000; // ml/分 → L/時
+        
+        // 6. 500Lタンクの持続時間
         const tankDurationMinutes = (tankVolume * 1000) / injectionVolumePerMin; // ml単位で計算
         const tankDurationHours = Math.floor(tankDurationMinutes / 60);
         const remainingMinutes = Math.round(tankDurationMinutes % 60);
 
         // 結果の表示
         document.getElementById('injection-volume').textContent = injectionVolumePerMin.toFixed(0);
+        document.getElementById('injection-volume-hour').textContent = injectionVolumePerHour.toFixed(2);
         
         // 持続時間の表示形式を決定
         let durationDisplay;
