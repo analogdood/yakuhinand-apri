@@ -242,6 +242,7 @@
             <select id="calc-mode" onchange="toggleMode()">
                 <option value="slurry">スラリー注入</option>
                 <option value="direct">直接投入</option>
+                <option value="duration">タンク持続時間→濃度</option>
             </select>
         </div>
         
@@ -268,6 +269,17 @@
         <div class="input-group" id="direct-inputs" style="display: none;">
             <label for="direct-target-concentration">目標活性炭濃度（mg/L）</label>
             <input type="number" id="direct-target-concentration" step="0.1" placeholder="例: 2.0">
+        </div>
+        
+        <!-- タンク持続時間モード用入力 -->
+        <div class="input-group" id="duration-inputs1" style="display: none;">
+            <label for="duration-bag-count">500Lタンクに溶かす袋数（1～10袋）</label>
+            <input type="number" id="duration-bag-count" min="1" max="10" value="1" placeholder="例: 1">
+        </div>
+        
+        <div class="input-group" id="duration-inputs2" style="display: none;">
+            <label for="tank-duration-hours">タンクを使い切る時間（時間）</label>
+            <input type="number" id="tank-duration-hours" step="0.5" min="0.5" placeholder="例: 8.0">
         </div>
     </div>
     
@@ -300,6 +312,19 @@
                 <div class="result-title">💡 参考：袋数換算</div>
                 <div class="result-value main-value" id="direct-bag-equivalent">--</div>
                 <span class="result-unit">袋/日</span>
+            </div>
+            
+            <!-- タンク持続時間モード用結果 -->
+            <div class="result-card main-result" id="duration-result-1" style="display: none;">
+                <div class="result-title">🎯 達成濃度</div>
+                <div class="result-value main-value" id="achieved-concentration">--</div>
+                <span class="result-unit">mg/L</span>
+            </div>
+            
+            <div class="result-card main-result" id="duration-result-2" style="display: none;">
+                <div class="result-title">💡 注入速度</div>
+                <div class="result-value main-value" id="injection-rate">--</div>
+                <span class="result-unit">ml/分</span>
             </div>
             
             <div class="result-card sub-result">
@@ -353,22 +378,41 @@
     // モード切り替え機能
     function toggleMode() {
         const mode = document.getElementById('calc-mode').value;
-        const isSlurry = mode === 'slurry';
         
-        // 入力項目の表示切り替え
-        document.getElementById('slurry-inputs').style.display = isSlurry ? 'block' : 'none';
-        document.getElementById('slurry-target').style.display = isSlurry ? 'block' : 'none';
-        document.getElementById('direct-inputs').style.display = isSlurry ? 'none' : 'block';
+        // 全ての入力項目を非表示にしてから、選択されたモードのみ表示
+        document.getElementById('slurry-inputs').style.display = 'none';
+        document.getElementById('slurry-target').style.display = 'none';
+        document.getElementById('direct-inputs').style.display = 'none';
+        document.getElementById('duration-inputs1').style.display = 'none';
+        document.getElementById('duration-inputs2').style.display = 'none';
         
-        // 結果表示の切り替え
-        document.getElementById('slurry-result-1').style.display = isSlurry ? 'block' : 'none';
-        document.getElementById('slurry-result-2').style.display = isSlurry ? 'block' : 'none';
-        document.getElementById('direct-result-1').style.display = isSlurry ? 'none' : 'block';
-        document.getElementById('direct-result-2').style.display = isSlurry ? 'none' : 'block';
+        // 全ての結果表示を非表示にしてから、選択されたモードのみ表示
+        document.getElementById('slurry-result-1').style.display = 'none';
+        document.getElementById('slurry-result-2').style.display = 'none';
+        document.getElementById('direct-result-1').style.display = 'none';
+        document.getElementById('direct-result-2').style.display = 'none';
+        document.getElementById('duration-result-1').style.display = 'none';
+        document.getElementById('duration-result-2').style.display = 'none';
         
-        // タイトル変更
-        document.getElementById('result-title').textContent = isSlurry ? 
-            '🎯 活性炭注入計算結果' : '🎯 直接投入計算結果';
+        // 選択されたモードに応じて表示
+        if (mode === 'slurry') {
+            document.getElementById('slurry-inputs').style.display = 'block';
+            document.getElementById('slurry-target').style.display = 'block';
+            document.getElementById('slurry-result-1').style.display = 'block';
+            document.getElementById('slurry-result-2').style.display = 'block';
+            document.getElementById('result-title').textContent = '🎯 活性炭注入計算結果';
+        } else if (mode === 'direct') {
+            document.getElementById('direct-inputs').style.display = 'block';
+            document.getElementById('direct-result-1').style.display = 'block';
+            document.getElementById('direct-result-2').style.display = 'block';
+            document.getElementById('result-title').textContent = '🎯 直接投入計算結果';
+        } else if (mode === 'duration') {
+            document.getElementById('duration-inputs1').style.display = 'block';
+            document.getElementById('duration-inputs2').style.display = 'block';
+            document.getElementById('duration-result-1').style.display = 'block';
+            document.getElementById('duration-result-2').style.display = 'block';
+            document.getElementById('result-title').textContent = '🎯 タンク持続時間計算結果';
+        }
     }
 
     function calculate() {
@@ -377,8 +421,10 @@
         
         if (mode === 'slurry') {
             calculateSlurry(flowRate);
-        } else {
+        } else if (mode === 'direct') {
             calculateDirect(flowRate);
+        } else if (mode === 'duration') {
+            calculateDuration(flowRate);
         }
     }
     
@@ -491,6 +537,61 @@
         document.getElementById('calculation-info').textContent = 
             `流量: ${flowRate}㎥/h | 目標濃度: ${targetConcentration}mg/L | ` +
             `純活性炭: ${pureCarbonNeededGrams.toFixed(0)}g/h | wet50: ${wet50Needed.toFixed(0)}g/h`;
+            
+        // 結果セクションを表示
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    // タンク持続時間から濃度を逆算する計算
+    function calculateDuration(flowRate) {
+        const bagCount = parseInt(document.getElementById('duration-bag-count').value);
+        const durationHours = parseFloat(document.getElementById('tank-duration-hours').value);
+        
+        // バリデーション
+        if (isNaN(flowRate) || isNaN(bagCount) || isNaN(durationHours)) {
+            alert('必須項目をすべて正しく入力してください。');
+            return;
+        }
+        
+        if (bagCount < 1 || bagCount > 10) {
+            alert('500Lタンクに溶かす袋数は1～10袋の範囲で入力してください。');
+            return;
+        }
+        
+        if (durationHours <= 0) {
+            alert('タンクを使い切る時間は正の値を入力してください。');
+            return;
+        }
+        
+        // 計算定数
+        const bagWeight = 10; // kg/袋
+        const carbonRatio = 0.5; // 50%が活性炭
+        const tankVolume = 500; // L
+        
+        // 1. 活性炭重量（kg）
+        const carbonWeight = bagCount * bagWeight * carbonRatio;
+        
+        // 2. スラリー濃度（%）
+        const slurryConcentration = (carbonWeight / tankVolume) * 100;
+        
+        // 3. スラリー中活性炭濃度（mg/L）
+        const slurryCarbonConcentration = slurryConcentration * 10;
+        
+        // 4. 1分間の注入量（ml/分） = タンク容量 ÷ 持続時間
+        const injectionVolumePerMin = (tankVolume * 1000) / (durationHours * 60); // L → ml, h → min
+        
+        // 5. 達成濃度（mg/L）を逆算
+        const achievedConcentration = (injectionVolumePerMin * slurryCarbonConcentration * 60) / (flowRate * 1000);
+        
+        // 結果の表示
+        document.getElementById('achieved-concentration').textContent = achievedConcentration.toFixed(1);
+        document.getElementById('injection-rate').textContent = Math.round(injectionVolumePerMin / 10) * 10; // 10の桁で丸める
+        
+        // 計算詳細情報
+        document.getElementById('calculation-info').textContent = 
+            `袋数: ${bagCount}袋 | 流量: ${flowRate}㎥/h | 持続時間: ${durationHours}時間 | ` +
+            `スラリー濃度: ${slurryConcentration.toFixed(2)}% | 注入速度: ${injectionVolumePerMin.toFixed(0)}ml/分`;
             
         // 結果セクションを表示
         document.getElementById('results').style.display = 'block';
