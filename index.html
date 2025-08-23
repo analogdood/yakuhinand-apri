@@ -211,6 +211,18 @@
     <div class="container">
         <h1>🧪 薬品・活性炭注入計算ツール</h1>
         <p class="subtitle">浄水場での薬品注入量を正確に計算します</p>
+        
+        <!-- PWA使用方法の案内 -->
+        <div style="background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%); border-radius: 12px; padding: 20px; margin: 25px 0; border-left: 4px solid #667eea;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <span style="font-size: 20px;">📱</span>
+                <strong style="color: #2c3e50; font-size: 16px;">おすすめの使い方</strong>
+            </div>
+            <p style="color: #495057; font-size: 14px; line-height: 1.5; margin: 0;">
+                各計算機をスマートフォンの<strong>ホーム画面に個別追加</strong>すると、アプリのように素早くアクセスできて便利です。<br>
+                <span style="color: #6c757d; font-size: 13px;">Safari: 共有ボタン → 「ホーム画面に追加」｜Chrome: メニュー → 「ホーム画面に追加」</span>
+            </p>
+        </div>
 
         <div class="tools-grid">
             <!-- 活性炭注入計算 -->
@@ -223,6 +235,19 @@
                     <div class="feature">3つの計算モード</div>
                     <div class="feature">タンク持続時間算出</div>
                     <div class="feature">直接投入量逆算</div>
+                </div>
+            </a>
+
+            <!-- PAC注入率計算機 -->
+            <a href="第一第二浄水場薬品注入量計算.html" class="tool-card pac-card">
+                <span class="tool-icon">💧</span>
+                <h3 class="tool-title">PAC注入率計算機</h3>
+                <p class="tool-description">浄水場での薬品注入量を計算します。流量と水質データから最適な注入量を算出。</p>
+                <div class="tool-features">
+                    <div class="feature">流量・濁度・アルカリ度対応</div>
+                    <div class="feature">PAC・苛性ソーダ計算</div>
+                    <div class="feature">リアルタイム計算</div>
+                    <div class="feature">注入率自動算出</div>
                 </div>
             </a>
 
@@ -242,6 +267,7 @@
 
         <div class="footer">
             <div class="footer-links">
+                <a href="第一第二浄水場薬品注入量計算.html" class="footer-link">PAC注入率計算機</a>
                 <a href="活性炭注入計算機.html" class="footer-link">活性炭注入計算</a>
                 <a href="薬品注入率計算機.html" class="footer-link">薬品注入率計算機</a>
             </div>
@@ -281,10 +307,11 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const swCode = `
-                const CACHE_NAME = 'yakuhin-tools-index-v1';
+                const CACHE_NAME = 'yakuhin-tools-index-v2';
                 const urlsToCache = [
                     './',
                     './index.html',
+                    './第一第二浄水場薬品注入量計算.html',
                     './活性炭注入計算機.html',
                     './薬品注入率計算機.html'
                 ];
