@@ -292,6 +292,15 @@
 <body>
     <div class="container">
         <h1>薬品注入率計算機</h1>
+        
+        <!-- 設定状況表示 -->
+        <div id="settings-status" style="background: #f8f9fa; border-radius: 8px; padding: 12px; margin: 15px 0; border-left: 4px solid #28a745;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 16px;">⚙️</span>
+                <span style="font-weight: 600; color: #495057;">設定状況:</span>
+                <span id="settings-source" style="color: #28a745; font-weight: 500;">読み込み中...</span>
+            </div>
+        </div>
 
         <!-- 基本入力セクション -->
         <div class="section">
@@ -530,6 +539,9 @@
 
     // 設定保存
     function saveSettings() {
+        const now = new Date();
+        const saveDate = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        
         const settings = {
             flowRate: document.getElementById('flow-rate').value,
             rawAlkalinity: document.getElementById('raw-alkalinity').value,
@@ -546,11 +558,20 @@
             causticK: document.getElementById('caustic-k').value,
             causticF: document.getElementById('caustic-f').value,
             chemicalDensity: document.getElementById('chemical-density').value,
-            unitConversion: document.getElementById('unit-conversion').value
+            unitConversion: document.getElementById('unit-conversion').value,
+            saveDate: saveDate
         };
         
         try {
             localStorage.setItem('yakuhin-calc-settings', JSON.stringify(settings));
+            
+            // 状況表示を更新
+            const statusElement = document.getElementById('settings-source');
+            if (statusElement) {
+                statusElement.innerHTML = `保存済み設定を使用中 (${saveDate})`;
+                statusElement.style.color = '#28a745';
+                document.getElementById('settings-status').style.borderLeftColor = '#28a745';
+            }
         } catch (e) {
             console.warn('設定の保存に失敗しました:', e);
         }
@@ -558,10 +579,12 @@
 
     // 設定読み込み
     function loadSettings() {
+        const statusElement = document.getElementById('settings-source');
         try {
             const saved = localStorage.getItem('yakuhin-calc-settings');
             if (saved) {
                 const settings = JSON.parse(saved);
+                const saveDate = settings.saveDate || '不明';
                 
                 // 各フィールドに値を復元
                 Object.keys(settings).forEach(key => {
@@ -571,11 +594,24 @@
                     }
                 });
                 
+                // 状況表示を更新
+                statusElement.innerHTML = `保存済み設定を使用中 (${saveDate})`;
+                statusElement.style.color = '#28a745';
+                document.getElementById('settings-status').style.borderLeftColor = '#28a745';
+                
                 console.log('設定を読み込みました');
                 return true;
+            } else {
+                // 保存済み設定なし
+                statusElement.innerHTML = 'デフォルト設定を使用中';
+                statusElement.style.color = '#ffc107';
+                document.getElementById('settings-status').style.borderLeftColor = '#ffc107';
             }
         } catch (e) {
             console.warn('設定の読み込みに失敗しました:', e);
+            statusElement.innerHTML = 'デフォルト設定を使用中 (読み込みエラー)';
+            statusElement.style.color = '#dc3545';
+            document.getElementById('settings-status').style.borderLeftColor = '#dc3545';
         }
         return false;
     }
