@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="薬品注入率計算">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuiWrOWTgeazqeWFpemHj+ioiOeul+ODhOODvOODqyIsCiAgInNob3J0X25hbWUiOiAi6Jas5ZOB6KiI566XIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiIzY2N2VlYSIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1UWXdJaUJvWldsbmFIUTlJakUyTUNJZ2RtbGxkMEp2ZUQwaU1DQXdJREUyTUNBd0lHUmxQU0JoSWlCbWFXeHNQU0lqTmpZM1pXVmhJaUErUEhKbFkzUWdlRDBpTUNJZ2VUMGlNQ0lnZDJsa2RHZzlJakUyTUNJZ2FHVnBaMmgwUFNJeE5qQWlMejQ4ZEdWNGRDQjRQU0kwTUNJZ2VUMGlOekFpSUhSbGVIUXRZVzVqYUc5eVBTSmphMnhaZDJWc2JDSWdabWxzYkQwaUkzZG9hWFJsU1YwMmFubGlSRnBoZWpCalp6OGpZeFpaSUQ0Tk16bE9TV0ZMVUZkdlJuazNhMUpZUTFkVFV6RkhVMjlPUlVrNWFpdG1WMVozVWtvNlQxWk5UbGx5TTFwemJrcHFRa2hNYzJrNU1BPT08L3RleHQ+PC9zdmc+IiwKICAgICAgInNpemVzIjogIjE2MHgxNjAiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ==">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuiWrOWTgeazqOWFpeeOh+ioiOeul+apnyIsCiAgInNob3J0X25hbWUiOiAi6Jas5ZOB6KiI566X5qmfIiwKICAic3RhcnRfdXJsIjogIi4v6Jas5ZOB5rOo5YWl546H6KiI566X5qmfLmh0bWwiLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciI6ICIjNjY3ZWVhIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCM2FXUjBhRDBpTVRZd0lpQm9aV2xuYUhROUlqRTJNQ0lnZG1sbGQwSnZlRDBpTUNBd0lERTJNQ0F4TmpBaUlHWnBiR3c5SW01dmJtVWlJSGh0Ykc1elBTSm9kSFJ3T2k4dmQzZDNMbmN6TG05eVp5OHlNREF3TDNOMlp5SStQSEpsWTNRZ2QybGtkR2c5SWpFMk1DSWdhR1ZwWjJoMFBTSXhOakFpSUdacGJHdzlJaU0yTmpkbFpXRWlMejQ4ZEdWNGRDQjRQU0k0TUNJZ2VUMGlPVEFpSUhSbGVIUXRZVzVqYUc5eVBTSnRhV1JrYkdVaUlHWnBiR3c5SW5kb2FYUmxJaUJtYjI1MExXWmhiV2xzZVQwaVFYSnBZV3dpSUdadmJuUXRjMmw2WlQwaU1UZ2lJR1p2Ym5RdGQyVnBaMmgwUFNKaWIyeGtJajdvbzZibGs0RThMM1JsZUhRK1BDOXpkbWMrIiwKICAgICAgInNpemVzIjogIjE2MHgxNjAiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQo=">
     <title>薬品注入率計算機</title>
     
     <!-- Google Analytics -->
@@ -538,11 +538,25 @@
     };
 
     // 設定保存
-    function saveSettings() {
+    function saveSettings(facilityName = null) {
         const now = new Date();
         const saveDate = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
         
+        // 既存の設定から施設名を取得、または新しく設定
+        let currentFacilityName = facilityName;
+        if (!currentFacilityName) {
+            try {
+                const existing = localStorage.getItem('yakuhin-calc-settings');
+                if (existing) {
+                    const existingSettings = JSON.parse(existing);
+                    currentFacilityName = existingSettings.facilityName || null;
+                }
+            } catch (e) {}
+        }
+        
         const settings = {
+            facilityName: currentFacilityName,
+            saveDate: saveDate,
             flowRate: document.getElementById('flow-rate').value,
             rawAlkalinity: document.getElementById('raw-alkalinity').value,
             pacCorrection: document.getElementById('pac-correction').value,
@@ -558,22 +572,30 @@
             causticK: document.getElementById('caustic-k').value,
             causticF: document.getElementById('caustic-f').value,
             chemicalDensity: document.getElementById('chemical-density').value,
-            unitConversion: document.getElementById('unit-conversion').value,
-            saveDate: saveDate
+            unitConversion: document.getElementById('unit-conversion').value
         };
         
         try {
             localStorage.setItem('yakuhin-calc-settings', JSON.stringify(settings));
             
             // 状況表示を更新
-            const statusElement = document.getElementById('settings-source');
-            if (statusElement) {
-                statusElement.innerHTML = `保存済み設定を使用中 (${saveDate})`;
-                statusElement.style.color = '#28a745';
-                document.getElementById('settings-status').style.borderLeftColor = '#28a745';
-            }
+            updateSettingsStatus(currentFacilityName, saveDate);
         } catch (e) {
             console.warn('設定の保存に失敗しました:', e);
+        }
+    }
+    
+    // 設定状況表示を更新
+    function updateSettingsStatus(facilityName, saveDate) {
+        const statusElement = document.getElementById('settings-source');
+        if (statusElement) {
+            if (facilityName) {
+                statusElement.innerHTML = `${facilityName}設定を使用中 (${saveDate})`;
+            } else {
+                statusElement.innerHTML = `保存済み設定を使用中 (${saveDate})`;
+            }
+            statusElement.style.color = '#28a745';
+            document.getElementById('settings-status').style.borderLeftColor = '#28a745';
         }
     }
 
@@ -585,6 +607,7 @@
             if (saved) {
                 const settings = JSON.parse(saved);
                 const saveDate = settings.saveDate || '不明';
+                const facilityName = settings.facilityName;
                 
                 // 各フィールドに値を復元
                 Object.keys(settings).forEach(key => {
@@ -595,9 +618,7 @@
                 });
                 
                 // 状況表示を更新
-                statusElement.innerHTML = `保存済み設定を使用中 (${saveDate})`;
-                statusElement.style.color = '#28a745';
-                document.getElementById('settings-status').style.borderLeftColor = '#28a745';
+                updateSettingsStatus(facilityName, saveDate);
                 
                 console.log('設定を読み込みました');
                 return true;
@@ -633,7 +654,11 @@
 
     // 設定エクスポート
     function exportSettings() {
+        const facilityName = prompt('設定ファイル名（浄水場名など）を入力してください:', '関口浄水場');
+        if (facilityName === null) return; // キャンセルされた場合
+        
         const settings = {
+            facilityName: facilityName || '設定',
             flowRate: document.getElementById('flow-rate').value,
             rawAlkalinity: document.getElementById('raw-alkalinity').value,
             pacCorrection: document.getElementById('pac-correction').value,
@@ -660,10 +685,12 @@
         
         const link = document.createElement('a');
         link.href = url;
-        link.download = `薬品計算設定_${new Date().toISOString().split('T')[0]}.json`;
+        link.download = `${facilityName}_設定_${new Date().toISOString().split('T')[0]}.json`;
         link.click();
         
         URL.revokeObjectURL(url);
+        
+        alert(`${facilityName}の設定をエクスポートしました`);
     }
 
     // 設定インポート
@@ -685,7 +712,7 @@
 
                 // 設定を適用
                 Object.keys(settings).forEach(key => {
-                    if (key === 'exportDate' || key === 'version') return;
+                    if (key === 'exportDate' || key === 'version' || key === 'facilityName' || key === 'saveDate') return;
                     
                     const element = document.getElementById(key.replace(/([A-Z])/g, '-$1').toLowerCase());
                     if (element && settings[key] !== undefined) {
@@ -693,8 +720,15 @@
                     }
                 });
 
-                saveSettings();
-                alert('設定をインポートしました');
+                // 浄水場名付きで保存
+                const facilityName = settings.facilityName || null;
+                saveSettings(facilityName);
+                
+                if (facilityName) {
+                    alert(`${facilityName}の設定をインポートしました`);
+                } else {
+                    alert('設定をインポートしました');
+                }
                 
             } catch (error) {
                 alert('設定ファイルの読み込みに失敗しました: ' + error.message);
