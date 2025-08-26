@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#28a745">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-inline';">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="薬品注入計算（基本）">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuiWrOWTgeazqOWFpeioseelmuOCouODl+ODqe+8iOWfuuacrO+8iSIsCiAgInNob3J0X25hbWUiOiAi6Jas5ZOB6KiI566X77yI5Z+65pyxDCIsCiAgInN0YXJ0X3VybCI6ICIuL+iWrOWTgeazqOWFpeioseelmuOCouODl+ODqe+8iOWfuuacrO+8iS5odG1sIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiIzI4YTc0NSIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1UWXdJaUJvWldsbmFIUTlJakUyTUNJZ2RtbGxkMEp2ZUQwaU1DQXdJREUyTUNBd0lHUmxQU0JoSWlCbWFXeHNQU0lqTWpkaE56UTFJaUErUEhKbFkzUWdlRDBpTUNJZ2VUMGlNQ0lnZDJsa2RHZzlJakUyTUNJZ2FHVnBaMmgwUFNJeE5qQWlMejQ4ZEdWNGRDQjRQU0k0TUNJZ2VUMGlPVEFpSUhSbGVIUXRZVzVqYUc5eVBTSnRhV1JrYkdVaUlHWnBiR3c5SW5kb2FYUmxJaUJtYjI1MExXWmhiV2xzZVQwaVFYSnBZV3dpSUdadmJuUXRjMmw2WlQwaU1qQWlJR1p2Ym5RdGQyVnBaMmgwUFNKaWIyeGtJajdvbzZibGs0RThMM1JsZEhRK1BDOXpkbWMrIiwKICAgICAgInNpemVzIjogIjE2MHgxNjAiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQo=">
+    <title>薬品注入計算アプリ（基本）</title>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-061E9WFGX6"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-061E9WFGX6');
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 30px 20px;
+        max-width: 600px;
+        width: 100%;
+    }
+
+    h1 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+    .section {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        border-left: 4px solid #28a745;
+    }
+
+    .section h2 {
+        color: #2c3e50;
+        font-size: 18px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .input-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    label {
+        color: #34495e;
+        font-weight: 500;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    select, input {
+        padding: 12px 16px;
+        border: 2px solid #e1e8ed;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    select:focus, input:focus {
+        outline: none;
+        border-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+
+    .turbidity-selector {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .turbidity-selector select {
+        flex: 1;
+    }
+
+    .turbidity-separator {
+        font-size: 20px;
+        font-weight: bold;
+        color: #6c757d;
+    }
+
+    .calc-btn {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .calc-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    }
+
+    .results {
+        margin-top: 30px;
+        padding: 25px;
+        background: linear-gradient(135deg, #e8f5e8 0%, #f0fff4 100%);
+        border-radius: 15px;
+        border-left: 4px solid #28a745;
+    }
+
+    .result-item {
+        margin-bottom: 15px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .result-label {
+        color: #2c3e50;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .result-value {
+        color: #28a745;
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    .result-unit {
+        color: #6c757d;
+        font-size: 14px;
+        margin-left: 5px;
+    }
+
+    .footer {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #e1e8ed;
+        color: #6c757d;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .footer-links {
+        margin-bottom: 15px;
+    }
+
+    .footer-link {
+        color: #28a745;
+        text-decoration: none;
+        margin: 0 10px;
+    }
+
+    .footer-link:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            max-width: 100%;
+            padding: 20px 15px;
+        }
+        
+        .input-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        h1 {
+            font-size: 24px;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>薬品注入計算アプリ（基本）</h1>
+        
+        <!-- 設定状況表示 -->
+        <div id="settings-status" style="background: #f8f9fa; border-radius: 8px; padding: 12px; margin: 15px 0; border-left: 4px solid #28a745;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 16px;">⚙️</span>
+                <span style="font-weight: 600; color: #495057;">設定状況:</span>
+                <span id="settings-source" style="color: #28a745; font-weight: 500;">関口浄水場デフォルト仕様</span>
+            </div>
+        </div>
+
+        <!-- 基本入力セクション -->
+        <div class="section">
+            <h2>📊 基本設定</h2>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="flow-rate">原水流量</label>
+                    <select id="flow-rate">
+                        <option value="160">160 ㎥/h</option>
+                        <option value="140">140 ㎥/h</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="turbidity">濁度</label>
+                    <div class="turbidity-selector">
+                        <select id="turbidity-integer">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                            <option value="21">21</option>
+                            <option value="22">22</option>
+                            <option value="23">23</option>
+                            <option value="24">24</option>
+                            <option value="25">25</option>
+                            <option value="26">26</option>
+                            <option value="27">27</option>
+                            <option value="28">28</option>
+                            <option value="29">29</option>
+                            <option value="30">30</option>
+                            <option value="31">31</option>
+                            <option value="32">32</option>
+                            <option value="33">33</option>
+                            <option value="34">34</option>
+                            <option value="35">35</option>
+                            <option value="36">36</option>
+                            <option value="37">37</option>
+                            <option value="38">38</option>
+                            <option value="39">39</option>
+                            <option value="40">40</option>
+                        </select>
+                        <span class="turbidity-separator">.</span>
+                        <select id="turbidity-decimal">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="pac-correction">PAC増量分（ppm）</label>
+                    <input type="number" id="pac-correction" step="1" placeholder="0" value="0">
+                </div>
+            </div>
+        </div>
+
+        <!-- 計算実行 -->
+        <button class="calc-btn" onclick="calculate()">計算実行</button>
+
+        <!-- 結果表示 -->
+        <div class="results" id="results" style="display: none;">
+            <h2 style="color: #2c3e50; margin-bottom: 20px; text-align: center;">💧 計算結果</h2>
+            <div class="result-item">
+                <span class="result-label">PAC注入率</span>
+                <span><span class="result-value" id="pac-rate">0</span><span class="result-unit">ppm</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">苛性ソーダ注入率</span>
+                <span><span class="result-value" id="caustic-rate">0</span><span class="result-unit">ppm</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">PAC注入量</span>
+                <span><span class="result-value" id="pac-volume">0</span><span class="result-unit">L/h</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">苛性ソーダ注入量</span>
+                <span><span class="result-value" id="caustic-volume">0</span><span class="result-unit">L/h</span></span>
+            </div>
+        </div>
+
+        <!-- ライセンス情報 -->
+        <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 12px; color: #6c757d; text-align: left;">
+            <div style="text-align: center; margin-bottom: 10px;">
+                <strong>📄 ライセンス情報</strong>
+            </div>
+            <div style="line-height: 1.4;">
+                <strong>薬品注入計算アプリ（基本）</strong><br>
+                Copyright (c) 2024 大高宏<br><br>
+                
+                <strong>MIT License</strong><br>
+                このソフトウェアはMITライセンスの下で提供されています。<br>
+                商用・非商用問わず自由にご利用いただけます。<br>
+                詳細は <a href="https://opensource.org/licenses/MIT" target="_blank" style="color: #28a745;">MIT License</a> をご確認ください。<br><br>
+                
+                <strong>フリーソフト</strong> - 無料でご利用いただけます。
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-links">
+                <a href="index.html" class="footer-link">メインページ</a>
+                <a href="薬品注入率計算機.html" class="footer-link">詳細版</a>
+            </div>
+            
+            <p>問い合わせ先：analogdood@gmail.com</p>
+            <p>&copy; 2024 薬品注入計算アプリ（基本）</p>
+        </div>
+    </div>
+
+<script>
+    // デフォルト設定値（関口浄水場仕様）
+    const DEFAULT_SETTINGS = {
+        // PAC計算係数
+        pacA1: 31.6,
+        pacB1: 6.89,
+        pacA2: 31.8,
+        pacB2: 6.71,
+        pacA3: 32.5,
+        pacB3: 6.7,
+        // 苛性計算係数
+        rawAlkalinity: 23.35,
+        causticA2: 20.00,
+        causticK: 0.15,
+        causticF: 3.20,
+        // 薬品物性
+        chemicalDensity: 1.200,
+        unitConversion: 1000,
+        // 濁度レンジ設定
+        range1Max: 7,
+        range2Max: 39
+    };
+
+    let currentSettings = {...DEFAULT_SETTINGS};
+
+    // 設定ファイル読み込み試行
+    function tryLoadSettings() {
+        const statusElement = document.getElementById('settings-source');
+        try {
+            // 詳細版の設定を読み込み試行
+            const saved = localStorage.getItem('yakuhin-calc-settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                const facilityName = settings.facilityName;
+                const saveDate = settings.saveDate || '不明';
+                
+                // 設定値を適用
+                if (settings.pacA1) currentSettings.pacA1 = parseFloat(settings.pacA1);
+                if (settings.pacB1) currentSettings.pacB1 = parseFloat(settings.pacB1);
+                if (settings.pacA2) currentSettings.pacA2 = parseFloat(settings.pacA2);
+                if (settings.pacB2) currentSettings.pacB2 = parseFloat(settings.pacB2);
+                if (settings.pacA3) currentSettings.pacA3 = parseFloat(settings.pacA3);
+                if (settings.pacB3) currentSettings.pacB3 = parseFloat(settings.pacB3);
+                if (settings.rawAlkalinity) currentSettings.rawAlkalinity = parseFloat(settings.rawAlkalinity);
+                if (settings.causticA2) currentSettings.causticA2 = parseFloat(settings.causticA2);
+                if (settings.causticK) currentSettings.causticK = parseFloat(settings.causticK);
+                if (settings.causticF) currentSettings.causticF = parseFloat(settings.causticF);
+                if (settings.chemicalDensity) currentSettings.chemicalDensity = parseFloat(settings.chemicalDensity);
+                if (settings.unitConversion) currentSettings.unitConversion = parseFloat(settings.unitConversion);
+                if (settings.range1Max) currentSettings.range1Max = parseFloat(settings.range1Max);
+                if (settings.range2Max) currentSettings.range2Max = parseFloat(settings.range2Max);
+                
+                // 状況表示を更新
+                if (facilityName) {
+                    statusElement.innerHTML = `${facilityName}設定を読み込み済み (${saveDate})`;
+                } else {
+                    statusElement.innerHTML = `保存済み設定を読み込み済み (${saveDate})`;
+                }
+                statusElement.style.color = '#28a745';
+                document.getElementById('settings-status').style.borderLeftColor = '#28a745';
+                
+                console.log('詳細版の設定を読み込みました');
+                return true;
+            } else {
+                // デフォルト設定使用
+                statusElement.innerHTML = '関口浄水場デフォルト仕様';
+                statusElement.style.color = '#28a745';
+                document.getElementById('settings-status').style.borderLeftColor = '#28a745';
+            }
+        } catch (e) {
+            console.warn('設定の読み込みに失敗しました:', e);
+            statusElement.innerHTML = '関口浄水場デフォルト仕様 (読み込みエラー)';
+            statusElement.style.color = '#dc3545';
+            document.getElementById('settings-status').style.borderLeftColor = '#dc3545';
+        }
+        return false;
+    }
+
+    // 計算実行
+    function calculate() {
+        const flowRate = parseFloat(document.getElementById('flow-rate').value);
+        const turbidityInteger = parseInt(document.getElementById('turbidity-integer').value);
+        const turbidityDecimal = parseInt(document.getElementById('turbidity-decimal').value);
+        const turbidity = turbidityInteger + (turbidityDecimal / 10);
+        const pacCorrection = parseFloat(document.getElementById('pac-correction').value) || 0;
+
+        // PAC注入率計算
+        let pacRate = 0;
+        if (turbidity <= currentSettings.range1Max) {
+            // レンジ1
+            pacRate = currentSettings.pacA1 + (currentSettings.pacB1 * turbidity);
+        } else if (turbidity <= currentSettings.range2Max) {
+            // レンジ2
+            pacRate = currentSettings.pacA2 + (currentSettings.pacB2 * turbidity);
+        } else {
+            // レンジ3
+            pacRate = currentSettings.pacA3 + (currentSettings.pacB3 * turbidity);
+        }
+        
+        // PAC補正値を追加
+        pacRate += pacCorrection;
+
+        // 苛性ソーダ注入率計算
+        const causticRate = currentSettings.causticA2 + 
+            (currentSettings.causticK * (currentSettings.rawAlkalinity - currentSettings.causticA2)) + 
+            (currentSettings.causticF * pacRate / 100);
+
+        // 注入量計算 (L/h)
+        const pacVolume = (pacRate * flowRate) / (currentSettings.chemicalDensity * currentSettings.unitConversion / 100);
+        const causticVolume = (causticRate * flowRate) / (currentSettings.chemicalDensity * currentSettings.unitConversion / 100);
+
+        // 結果表示
+        document.getElementById('pac-rate').textContent = pacRate.toFixed(1);
+        document.getElementById('caustic-rate').textContent = causticRate.toFixed(1);
+        document.getElementById('pac-volume').textContent = pacVolume.toFixed(1);
+        document.getElementById('caustic-volume').textContent = causticVolume.toFixed(1);
+        document.getElementById('results').style.display = 'block';
+
+        // 結果までスクロール
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ページ読み込み時の初期化
+    window.addEventListener('load', () => {
+        tryLoadSettings();
+        console.log('薬品注入計算アプリ（基本）初期化完了');
+    });
+</script>
+
+</body>
+</html>
