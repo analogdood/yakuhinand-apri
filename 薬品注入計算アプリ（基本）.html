@@ -246,48 +246,6 @@
                     <label for="turbidity">濁度</label>
                     <div class="turbidity-selector">
                         <select id="turbidity-integer">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="7">7</option>
-                            <option value="8">8</option>
-                            <option value="9">9</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                            <option value="19">19</option>
-                            <option value="20">20</option>
-                            <option value="21">21</option>
-                            <option value="22">22</option>
-                            <option value="23">23</option>
-                            <option value="24">24</option>
-                            <option value="25">25</option>
-                            <option value="26">26</option>
-                            <option value="27">27</option>
-                            <option value="28">28</option>
-                            <option value="29">29</option>
-                            <option value="30">30</option>
-                            <option value="31">31</option>
-                            <option value="32">32</option>
-                            <option value="33">33</option>
-                            <option value="34">34</option>
-                            <option value="35">35</option>
-                            <option value="36">36</option>
-                            <option value="37">37</option>
-                            <option value="38">38</option>
-                            <option value="39">39</option>
-                            <option value="40">40</option>
-                        </select>
                         <span class="turbidity-separator">.</span>
                         <select id="turbidity-decimal">
                             <option value="0">0</option>
@@ -305,7 +263,7 @@
                 </div>
                 
                 <div class="input-group">
-                    <label for="pac-correction">PAC増量分（ppm）</label>
+                    <label for="pac-correction">PAC増量分（mg/L）</label>
                     <input type="number" id="pac-correction" step="1" placeholder="0" value="0">
                 </div>
             </div>
@@ -319,11 +277,11 @@
             <h2 style="color: #2c3e50; margin-bottom: 20px; text-align: center;">💧 計算結果</h2>
             <div class="result-item">
                 <span class="result-label">PAC注入率</span>
-                <span><span class="result-value" id="pac-rate">0</span><span class="result-unit">ppm</span></span>
+                <span><span class="result-value" id="pac-rate">0</span><span class="result-unit">mg/L</span></span>
             </div>
             <div class="result-item">
                 <span class="result-label">苛性ソーダ注入率</span>
-                <span><span class="result-value" id="caustic-rate">0</span><span class="result-unit">ppm</span></span>
+                <span><span class="result-value" id="caustic-rate">0</span><span class="result-unit">mg/L</span></span>
             </div>
             <div class="result-item">
                 <span class="result-label">PAC注入量</span>
@@ -486,8 +444,31 @@
         document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // 濁度選択肢を動的生成
+    function initializeTurbiditySelectors() {
+        const integerSelect = document.getElementById('turbidity-integer');
+        const decimalSelect = document.getElementById('turbidity-decimal');
+        
+        // 整数部（0-150）
+        for (let i = 0; i <= 150; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            integerSelect.appendChild(option);
+        }
+        
+        // 小数部（0-9）
+        for (let i = 0; i <= 9; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            decimalSelect.appendChild(option);
+        }
+    }
+
     // ページ読み込み時の初期化
     window.addEventListener('load', () => {
+        initializeTurbiditySelectors();
         tryLoadSettings();
         console.log('薬品注入計算アプリ（基本）初期化完了');
     });
