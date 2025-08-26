@@ -226,7 +226,7 @@
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 16px;">⚙️</span>
                 <span style="font-weight: 600; color: #495057;">設定状況:</span>
-                <span id="settings-source" style="color: #28a745; font-weight: 500;">関口浄水場デフォルト仕様</span>
+                <span id="settings-source" style="color: #28a745; font-weight: 500;">デフォルト設定使用</span>
             </div>
         </div>
 
@@ -378,13 +378,13 @@
                 return true;
             } else {
                 // デフォルト設定使用
-                statusElement.innerHTML = '関口浄水場デフォルト仕様';
+                statusElement.innerHTML = 'デフォルト設定使用';
                 statusElement.style.color = '#28a745';
                 document.getElementById('settings-status').style.borderLeftColor = '#28a745';
             }
         } catch (e) {
             console.warn('設定の読み込みに失敗しました:', e);
-            statusElement.innerHTML = '関口浄水場デフォルト仕様 (読み込みエラー)';
+            statusElement.innerHTML = 'デフォルト設定使用 (読み込みエラー)';
             statusElement.style.color = '#dc3545';
             document.getElementById('settings-status').style.borderLeftColor = '#dc3545';
         }
