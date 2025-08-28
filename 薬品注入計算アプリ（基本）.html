@@ -450,17 +450,27 @@
         const turbidity = turbidityInteger + (turbidityDecimal / 10);
         const pacCorrection = parseFloat(document.getElementById('pac-correction').value) || 0;
 
+        // デバッグ用ログ
+        console.log('計算パラメータ:', {
+            flowRate, turbidityInteger, turbidityDecimal, turbidity, pacCorrection,
+            range1Max: currentSettings.range1Max,
+            pacA1: currentSettings.pacA1, pacB1: currentSettings.pacB1
+        });
+
         // PAC注入率計算
         let pacRate = 0;
         if (turbidity <= currentSettings.range1Max) {
             // レンジ1
             pacRate = currentSettings.pacA1 + (currentSettings.pacB1 * turbidity);
+            console.log('レンジ1使用:', pacRate, '=', currentSettings.pacA1, '+', currentSettings.pacB1, '×', turbidity);
         } else if (turbidity <= currentSettings.range2Max) {
             // レンジ2
             pacRate = currentSettings.pacA2 + (currentSettings.pacB2 * turbidity);
+            console.log('レンジ2使用:', pacRate);
         } else {
             // レンジ3
             pacRate = currentSettings.pacA3 + (currentSettings.pacB3 * turbidity);
+            console.log('レンジ3使用:', pacRate);
         }
         
         // PAC補正値を追加
@@ -472,8 +482,8 @@
             (currentSettings.causticF * pacRate / 100);
 
         // 注入量計算 (L/h)
-        const pacVolume = (pacRate * flowRate) / (currentSettings.chemicalDensity * currentSettings.unitConversion / 100);
-        const causticVolume = (causticRate * flowRate) / (currentSettings.chemicalDensity * currentSettings.unitConversion / 100);
+        const pacVolume = (pacRate * flowRate) / (currentSettings.chemicalDensity * currentSettings.unitConversion);
+        const causticVolume = (causticRate * flowRate) / (currentSettings.chemicalDensity * currentSettings.unitConversion);
 
         // 結果表示
         document.getElementById('pac-rate').textContent = pacRate.toFixed(1);
