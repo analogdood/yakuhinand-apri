@@ -137,6 +137,101 @@
         color: #6c757d;
     }
 
+    .turbidity-dials {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        justify-content: center;
+        margin: 10px 0;
+    }
+
+    .turbidity-display {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 16px;
+        color: #495057;
+    }
+
+    .turbidity-unit {
+        font-weight: bold;
+        color: #007bff;
+        font-size: 18px;
+        text-shadow: 1px 1px 2px rgba(0, 123, 255, 0.3);
+    }
+
+    .decimal-point {
+        font-size: 24px;
+        font-weight: bold;
+        color: #6c757d;
+        margin: 0 5px;
+    }
+
+    .flow-rate-dials {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        justify-content: center;
+        margin: 10px 0;
+    }
+
+    .dial-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .dial-label {
+        font-size: 12px;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .dial {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 3px solid #28a745;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: bold;
+        color: #495057;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        position: relative;
+    }
+
+    .dial:hover {
+        border-color: #20c997;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        transform: scale(1.05);
+    }
+
+    .dial.active {
+        border-color: #007bff;
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .flow-rate-display {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 16px;
+        color: #495057;
+    }
+
+    .flow-rate-unit {
+        font-weight: bold;
+        color: #28a745;
+        font-size: 18px;
+        text-shadow: 1px 1px 2px rgba(40, 167, 69, 0.3);
+    }
+
     .calc-btn {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         color: white;
@@ -251,36 +346,83 @@
         
         <!-- 設定状況表示 -->
         <div id="settings-status" style="background: #f8f9fa; border-radius: 8px; padding: 12px; margin: 15px 0; border-left: 4px solid #28a745;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 16px;">⚙️</span>
-                <span style="font-weight: 600; color: #495057;">設定状況:</span>
-                <span id="settings-source" style="color: #28a745; font-weight: 500;">デフォルト設定使用</span>
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">⚙️</span>
+                    <span style="font-weight: 600; color: #495057;">設定状況:</span>
+                    <span id="settings-source" style="color: #28a745; font-weight: 500;">デフォルト設定使用</span>
+                </div>
             </div>
         </div>
 
-        <!-- 基本入力セクション -->
+        <!-- 原水流量セクション -->
         <div class="section">
-            <h2>📊 基本設定</h2>
+            <h2>🌊 原水流量</h2>
             <div class="input-grid">
                 <div class="input-group">
-                    <label for="flow-rate">原水流量</label>
-                    <select id="flow-rate">
-                        <option value="160">160 ㎥/h</option>
-                        <option value="140">140 ㎥/h</option>
+                    <div class="flow-rate-dials">
+                        <div class="dial-container">
+                            <div class="dial-label">百</div>
+                            <div class="dial" id="hundreds-dial" onclick="cycleDial('hundreds')">1</div>
+                        </div>
+                        <div class="dial-container">
+                            <div class="dial-label">十</div>
+                            <div class="dial" id="tens-dial" onclick="cycleDial('tens')">6</div>
+                        </div>
+                        <div class="dial-container">
+                            <div class="dial-label">一</div>
+                            <div class="dial" id="ones-dial" onclick="cycleDial('ones')">0</div>
+                        </div>
+                    </div>
+                    <div class="flow-rate-display">
+                        <span id="flow-rate-value">160</span> <span class="flow-rate-unit">㎥/h</span>
+                    </div>
+                    <!-- 隠しinput要素で計算用の値を保持 -->
+                    <input type="hidden" id="flow-rate" value="160">
+                </div>
+            </div>
+        </div>
+
+        <!-- 濁度セクション -->
+        <div class="section">
+            <h2>🌫️ 濁度</h2>
+            <div class="input-grid">
+                <div class="input-group">
+                    <div class="turbidity-dials">
+                        <div class="dial-container">
+                            <div class="dial-label">百</div>
+                            <div class="dial" id="turbidity-hundreds-dial" onclick="cycleTurbidityDial('hundreds')">0</div>
+                        </div>
+                        <div class="dial-container">
+                            <div class="dial-label">十</div>
+                            <div class="dial" id="turbidity-tens-dial" onclick="cycleTurbidityDial('tens')">0</div>
+                        </div>
+                        <div class="dial-container">
+                            <div class="dial-label">一</div>
+                            <div class="dial" id="turbidity-ones-dial" onclick="cycleTurbidityDial('ones')">0</div>
+                        </div>
+                        <div class="decimal-point">.</div>
+                        <div class="dial-container">
+                            <div class="dial-label">小数</div>
+                            <div class="dial" id="turbidity-decimal-dial" onclick="cycleTurbidityDial('decimal')">0</div>
+                        </div>
+                    </div>
+                    <div class="turbidity-display">
+                        <span id="turbidity-value">0.0</span> <span class="turbidity-unit">度</span>
+                    </div>
+                    <!-- 隠しinput要素で計算用の値を保持 -->
+                    <select id="turbidity-integer" style="display: none;">
+                    </select>
+                    <select id="turbidity-decimal" style="display: none;">
                     </select>
                 </div>
-                
-                <div class="input-group">
-                    <label for="turbidity">濁度</label>
-                    <div class="turbidity-selector">
-                        <select id="turbidity-integer">
-                        </select>
-                        <span class="turbidity-separator">.</span>
-                        <select id="turbidity-decimal">
-                        </select>
-                    </div>
-                </div>
-                
+            </div>
+        </div>
+
+        <!-- その他設定セクション -->
+        <div class="section">
+            <h2>⚙️ その他設定</h2>
+            <div class="input-grid">
                 <div class="input-group">
                     <label for="pac-correction">PAC増量分（mg/L）</label>
                     <input type="number" id="pac-correction" step="1" placeholder="0" value="0">
@@ -331,9 +473,11 @@
         </div>
         
         <div class="footer">
-            <div class="footer-links">
-                <a href="index.html" class="footer-link">メインページ</a>
-                <a href="薬品注入率計算機.html" class="footer-link">詳細版</a>
+            <div style="margin-bottom: 10px;">
+                <input type="file" id="settings-file" accept=".json" style="display: none;" onchange="loadSettingsFromFile(this)">
+                <button onclick="document.getElementById('settings-file').click()" style="background: #6c757d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                    設定ファイル読み込み
+                </button>
             </div>
             
             <p>問い合わせ先：analogdood@gmail.com</p>
@@ -366,11 +510,10 @@
 
     let currentSettings = {...DEFAULT_SETTINGS};
 
-    // 設定ファイル読み込み試行
-    function tryLoadSettings() {
+    // 詳細設定を手動で読み込む
+    function loadDetailedSettings() {
         const statusElement = document.getElementById('settings-source');
         try {
-            // 詳細版の設定を読み込み試行
             const saved = localStorage.getItem('yakuhin-calc-settings');
             if (saved) {
                 const settings = JSON.parse(saved);
@@ -402,21 +545,76 @@
                 statusElement.style.color = '#28a745';
                 document.getElementById('settings-status').style.borderLeftColor = '#28a745';
                 
+                alert('詳細設定を読み込みました');
                 console.log('詳細版の設定を読み込みました');
                 return true;
             } else {
-                // デフォルト設定使用
-                statusElement.innerHTML = 'デフォルト設定使用';
-                statusElement.style.color = '#28a745';
-                document.getElementById('settings-status').style.borderLeftColor = '#28a745';
+                alert('詳細設定が見つかりません。\n詳細版アプリで設定を保存してください。');
+                return false;
             }
         } catch (e) {
             console.warn('設定の読み込みに失敗しました:', e);
-            statusElement.innerHTML = 'デフォルト設定使用 (読み込みエラー)';
-            statusElement.style.color = '#dc3545';
-            document.getElementById('settings-status').style.borderLeftColor = '#dc3545';
+            alert('設定の読み込みに失敗しました');
+            return false;
         }
-        return false;
+    }
+
+    // ファイルから設定を読み込む
+    function loadSettingsFromFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const settings = JSON.parse(e.target.result);
+                const statusElement = document.getElementById('settings-source');
+                
+                // 設定値を適用
+                if (settings.pacA1) currentSettings.pacA1 = parseFloat(settings.pacA1);
+                if (settings.pacB1) currentSettings.pacB1 = parseFloat(settings.pacB1);
+                if (settings.pacA2) currentSettings.pacA2 = parseFloat(settings.pacA2);
+                if (settings.pacB2) currentSettings.pacB2 = parseFloat(settings.pacB2);
+                if (settings.pacA3) currentSettings.pacA3 = parseFloat(settings.pacA3);
+                if (settings.pacB3) currentSettings.pacB3 = parseFloat(settings.pacB3);
+                if (settings.rawAlkalinity) currentSettings.rawAlkalinity = parseFloat(settings.rawAlkalinity);
+                if (settings.causticA2) currentSettings.causticA2 = parseFloat(settings.causticA2);
+                if (settings.causticK) currentSettings.causticK = parseFloat(settings.causticK);
+                if (settings.causticF) currentSettings.causticF = parseFloat(settings.causticF);
+                if (settings.chemicalDensity) currentSettings.chemicalDensity = parseFloat(settings.chemicalDensity);
+                if (settings.unitConversion) currentSettings.unitConversion = parseFloat(settings.unitConversion);
+                if (settings.range1Max) currentSettings.range1Max = parseFloat(settings.range1Max);
+                if (settings.range2Max) currentSettings.range2Max = parseFloat(settings.range2Max);
+                
+                // 状況表示を更新
+                const facilityName = settings.facilityName || 'ファイル';
+                const saveDate = settings.saveDate || '不明';
+                statusElement.textContent = `${facilityName}の設定 (${saveDate})`;
+                statusElement.style.color = '#17a2b8';
+                document.getElementById('settings-status').style.borderLeftColor = '#17a2b8';
+                
+                alert(`ファイルから設定を読み込みました\n施設名: ${facilityName}`);
+                console.log('ファイルから設定を読み込みました:', settings);
+                
+            } catch (e) {
+                console.error('設定ファイルの読み込みに失敗しました:', e);
+                alert('設定ファイルの読み込みに失敗しました\n正しいJSONファイルを選択してください');
+            }
+        };
+        reader.readAsText(file);
+        
+        // ファイル選択をリセット
+        input.value = '';
+    }
+    
+    // デフォルト設定にリセット
+    function resetToDefault() {
+        currentSettings = {...DEFAULT_SETTINGS};
+        const statusElement = document.getElementById('settings-source');
+        statusElement.innerHTML = 'デフォルト設定使用';
+        statusElement.style.color = '#28a745';
+        document.getElementById('settings-status').style.borderLeftColor = '#28a745';
+        console.log('デフォルト設定にリセットしました');
     }
 
     // iPad/タッチデバイス対応のタップ処理改善
@@ -496,6 +694,116 @@
         document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // ダイヤルの状態管理
+    let dialValues = {
+        hundreds: 1,
+        tens: 6,
+        ones: 0
+    };
+
+    // 濁度ダイヤルの状態管理
+    let turbidityDialValues = {
+        hundreds: 0,
+        tens: 0,
+        ones: 0,
+        decimal: 0
+    };
+
+    // ダイヤルをクリックして値を変更
+    function cycleDial(position) {
+        const dial = document.getElementById(position + '-dial');
+        const maxValues = {
+            hundreds: 3, // 0-3 (最大300)
+            tens: 9,     // 0-9
+            ones: 9      // 0-9
+        };
+
+        dialValues[position] = (dialValues[position] + 1) % (maxValues[position] + 1);
+        dial.textContent = dialValues[position];
+        
+        // 値が変更されたときの視覚効果
+        dial.classList.add('active');
+        setTimeout(() => {
+            dial.classList.remove('active');
+        }, 200);
+
+        updateFlowRate();
+    }
+
+    // 原水流量の表示と隠しinputの更新
+    function updateFlowRate() {
+        const flowRate = dialValues.hundreds * 100 + dialValues.tens * 10 + dialValues.ones;
+        document.getElementById('flow-rate-value').textContent = flowRate;
+        document.getElementById('flow-rate').value = flowRate;
+        
+        console.log('原水流量更新:', flowRate + ' ㎥/h');
+    }
+
+    // 濁度ダイヤルをクリックして値を変更
+    function cycleTurbidityDial(position) {
+        const dial = document.getElementById('turbidity-' + position + '-dial');
+        const maxValues = {
+            hundreds: 1, // 0-1 (最大150度)
+            tens: 5,     // 0-5 (但し百の位が1の時は5まで)
+            ones: 9,     // 0-9
+            decimal: 9   // 0-9
+        };
+
+        // 百の位が1の場合、十の位は5までに制限
+        if (position === 'tens' && turbidityDialValues.hundreds === 1) {
+            maxValues.tens = 5;
+        }
+        
+        // 百の位が1、十の位が5の場合、一の位は0までに制限（150度まで）
+        if (position === 'ones' && turbidityDialValues.hundreds === 1 && turbidityDialValues.tens === 5) {
+            maxValues.ones = 0;
+        }
+
+        turbidityDialValues[position] = (turbidityDialValues[position] + 1) % (maxValues[position] + 1);
+        dial.textContent = turbidityDialValues[position];
+        
+        // 百の位が変更された場合、十の位と一の位を調整
+        if (position === 'hundreds' && turbidityDialValues[position] === 1) {
+            if (turbidityDialValues.tens > 5) {
+                turbidityDialValues.tens = 0;
+                document.getElementById('turbidity-tens-dial').textContent = 0;
+            }
+            if (turbidityDialValues.tens === 5 && turbidityDialValues.ones > 0) {
+                turbidityDialValues.ones = 0;
+                document.getElementById('turbidity-ones-dial').textContent = 0;
+            }
+        }
+        
+        // 十の位が変更された場合、一の位を調整
+        if (position === 'tens' && turbidityDialValues.hundreds === 1 && turbidityDialValues.tens === 5) {
+            if (turbidityDialValues.ones > 0) {
+                turbidityDialValues.ones = 0;
+                document.getElementById('turbidity-ones-dial').textContent = 0;
+            }
+        }
+        
+        // 値が変更されたときの視覚効果
+        dial.classList.add('active');
+        setTimeout(() => {
+            dial.classList.remove('active');
+        }, 200);
+
+        updateTurbidity();
+    }
+
+    // 濁度の表示と隠しselectの更新
+    function updateTurbidity() {
+        const turbidityInteger = turbidityDialValues.hundreds * 100 + turbidityDialValues.tens * 10 + turbidityDialValues.ones;
+        const turbidityDecimal = turbidityDialValues.decimal;
+        const turbidity = turbidityInteger + (turbidityDecimal / 10);
+        
+        document.getElementById('turbidity-value').textContent = turbidity.toFixed(1);
+        document.getElementById('turbidity-integer').value = turbidityInteger;
+        document.getElementById('turbidity-decimal').value = turbidityDecimal;
+        
+        console.log('濁度更新:', turbidity.toFixed(1) + ' 度');
+    }
+
     // 濁度選択肢を動的生成
     function initializeTurbiditySelectors() {
         const integerSelect = document.getElementById('turbidity-integer');
@@ -521,9 +829,11 @@
     // ページ読み込み時の初期化
     window.addEventListener('load', () => {
         initializeTurbiditySelectors();
-        tryLoadSettings();
+        updateFlowRate(); // ダイヤルの初期値を反映
+        updateTurbidity(); // 濁度ダイヤルの初期値を反映
+        // 基本版は常にデフォルト設定で起動
         addTouchSupport(); // iPad/タッチデバイス対応
-        console.log('薬品注入計算アプリ（基本）初期化完了');
+        console.log('薬品注入計算アプリ（基本）初期化完了 - デフォルト設定使用');
     });
 </script>
 
