@@ -425,7 +425,7 @@
             <div class="input-grid">
                 <div class="input-group">
                     <label for="pac-correction">PAC増量分（mg/L）</label>
-                    <input type="number" id="pac-correction" step="1" placeholder="0" value="0">
+                    <input type="number" id="pac-correction" step="1" placeholder="0" value="0" onchange="savePacCorrection()" oninput="savePacCorrection()">
                 </div>
             </div>
         </div>
@@ -617,6 +617,19 @@
         console.log('デフォルト設定にリセットしました');
     }
 
+    // PAC補正値の保存・読み込み
+    function savePacCorrection() {
+        const pacCorrection = document.getElementById('pac-correction').value;
+        localStorage.setItem('basic-pac-correction', pacCorrection);
+    }
+
+    function loadPacCorrection() {
+        const saved = localStorage.getItem('basic-pac-correction');
+        if (saved !== null) {
+            document.getElementById('pac-correction').value = saved;
+        }
+    }
+
     // iPad/タッチデバイス対応のタップ処理改善
     function addTouchSupport() {
         const calcBtn = document.querySelector('.calc-btn');
@@ -655,29 +668,27 @@
             pacA1: currentSettings.pacA1, pacB1: currentSettings.pacB1
         });
 
-        // PAC注入率計算
+        // PAC注入率計算（詳細版と同じ計算式：√濁度を使用）
         let pacRate = 0;
         if (turbidity <= currentSettings.range1Max) {
             // レンジ1
-            pacRate = currentSettings.pacA1 + (currentSettings.pacB1 * turbidity);
-            console.log('レンジ1使用:', pacRate, '=', currentSettings.pacA1, '+', currentSettings.pacB1, '×', turbidity);
+            pacRate = currentSettings.pacA1 + (currentSettings.pacB1 * Math.sqrt(turbidity));
+            console.log('レンジ1使用:', pacRate, '=', currentSettings.pacA1, '+', currentSettings.pacB1, '× √', turbidity);
         } else if (turbidity <= currentSettings.range2Max) {
             // レンジ2
-            pacRate = currentSettings.pacA2 + (currentSettings.pacB2 * turbidity);
-            console.log('レンジ2使用:', pacRate);
+            pacRate = currentSettings.pacA2 + (currentSettings.pacB2 * Math.sqrt(turbidity));
+            console.log('レンジ2使用:', pacRate, '=', currentSettings.pacA2, '+', currentSettings.pacB2, '× √', turbidity);
         } else {
             // レンジ3
-            pacRate = currentSettings.pacA3 + (currentSettings.pacB3 * turbidity);
-            console.log('レンジ3使用:', pacRate);
+            pacRate = currentSettings.pacA3 + (currentSettings.pacB3 * Math.sqrt(turbidity));
+            console.log('レンジ3使用:', pacRate, '=', currentSettings.pacA3, '+', currentSettings.pacB3, '× √', turbidity);
         }
         
         // PAC補正値を追加
         pacRate += pacCorrection;
 
-        // 苛性ソーダ注入率計算
-        const causticRate = currentSettings.causticA2 + 
-            (currentSettings.causticK * (currentSettings.rawAlkalinity - currentSettings.causticA2)) + 
-            (currentSettings.causticF * pacRate / 100);
+        // 苛性ソーダ注入率計算（詳細版と同じ計算式）
+        const causticRate = (currentSettings.causticA2 + currentSettings.causticK * pacRate - currentSettings.rawAlkalinity) * currentSettings.causticF;
 
         // 注入量計算 (L/h)
         const pacVolume = (pacRate * flowRate) / (currentSettings.chemicalDensity * currentSettings.unitConversion);
@@ -831,6 +842,7 @@
         initializeTurbiditySelectors();
         updateFlowRate(); // ダイヤルの初期値を反映
         updateTurbidity(); // 濁度ダイヤルの初期値を反映
+        loadPacCorrection(); // PAC補正値を読み込み
         // 基本版は常にデフォルト設定で起動
         addTouchSupport(); // iPad/タッチデバイス対応
         console.log('薬品注入計算アプリ（基本）初期化完了 - デフォルト設定使用');
