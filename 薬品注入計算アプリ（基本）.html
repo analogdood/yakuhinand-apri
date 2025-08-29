@@ -630,6 +630,71 @@
         }
     }
 
+    // 原水流量ダイヤル値の保存・読み込み
+    function saveFlowRateDials() {
+        const dialData = {
+            hundreds: dialValues.hundreds,
+            tens: dialValues.tens,
+            ones: dialValues.ones
+        };
+        localStorage.setItem('basic-flow-rate-dials', JSON.stringify(dialData));
+    }
+
+    function loadFlowRateDials() {
+        const saved = localStorage.getItem('basic-flow-rate-dials');
+        if (saved !== null) {
+            try {
+                const dialData = JSON.parse(saved);
+                dialValues.hundreds = dialData.hundreds || 1;
+                dialValues.tens = dialData.tens || 6;
+                dialValues.ones = dialData.ones || 0;
+                
+                // ダイヤル表示を更新
+                document.getElementById('hundreds-dial').textContent = dialValues.hundreds;
+                document.getElementById('tens-dial').textContent = dialValues.tens;
+                document.getElementById('ones-dial').textContent = dialValues.ones;
+                
+                console.log('原水流量ダイヤル値を復元しました:', dialData);
+            } catch (e) {
+                console.warn('原水流量ダイヤル値の復元に失敗しました:', e);
+            }
+        }
+    }
+
+    // 濁度ダイヤル値の保存・読み込み
+    function saveTurbidityDials() {
+        const dialData = {
+            hundreds: turbidityDialValues.hundreds,
+            tens: turbidityDialValues.tens,
+            ones: turbidityDialValues.ones,
+            decimal: turbidityDialValues.decimal
+        };
+        localStorage.setItem('basic-turbidity-dials', JSON.stringify(dialData));
+    }
+
+    function loadTurbidityDials() {
+        const saved = localStorage.getItem('basic-turbidity-dials');
+        if (saved !== null) {
+            try {
+                const dialData = JSON.parse(saved);
+                turbidityDialValues.hundreds = dialData.hundreds || 0;
+                turbidityDialValues.tens = dialData.tens || 0;
+                turbidityDialValues.ones = dialData.ones || 0;
+                turbidityDialValues.decimal = dialData.decimal || 0;
+                
+                // ダイヤル表示を更新
+                document.getElementById('turbidity-hundreds-dial').textContent = turbidityDialValues.hundreds;
+                document.getElementById('turbidity-tens-dial').textContent = turbidityDialValues.tens;
+                document.getElementById('turbidity-ones-dial').textContent = turbidityDialValues.ones;
+                document.getElementById('turbidity-decimal-dial').textContent = turbidityDialValues.decimal;
+                
+                console.log('濁度ダイヤル値を復元しました:', dialData);
+            } catch (e) {
+                console.warn('濁度ダイヤル値の復元に失敗しました:', e);
+            }
+        }
+    }
+
     // iPad/タッチデバイス対応のタップ処理改善
     function addTouchSupport() {
         const calcBtn = document.querySelector('.calc-btn');
@@ -739,6 +804,7 @@
         }, 200);
 
         updateFlowRate();
+        saveFlowRateDials(); // ダイヤル値を保存
     }
 
     // 原水流量の表示と隠しinputの更新
@@ -800,6 +866,7 @@
         }, 200);
 
         updateTurbidity();
+        saveTurbidityDials(); // 濁度ダイヤル値を保存
     }
 
     // 濁度の表示と隠しselectの更新
@@ -840,6 +907,8 @@
     // ページ読み込み時の初期化
     window.addEventListener('load', () => {
         initializeTurbiditySelectors();
+        loadFlowRateDials(); // 原水流量ダイヤル値を読み込み
+        loadTurbidityDials(); // 濁度ダイヤル値を読み込み
         updateFlowRate(); // ダイヤルの初期値を反映
         updateTurbidity(); // 濁度ダイヤルの初期値を反映
         loadPacCorrection(); // PAC補正値を読み込み
