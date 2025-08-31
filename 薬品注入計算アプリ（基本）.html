@@ -187,6 +187,12 @@
         font-weight: 500;
     }
 
+    .dial-label.base-unit {
+        font-weight: bold;
+        color: #495057;
+        text-shadow: 1px 1px 2px rgba(73, 80, 87, 0.2);
+    }
+
     .dial {
         width: 60px;
         height: 60px;
@@ -406,15 +412,15 @@
                 <div class="input-group">
                     <div class="flow-rate-dials">
                         <div class="dial-container">
-                            <div class="dial-label">百</div>
+                            <div class="dial-label"><strong>1</strong>00</div>
                             <div class="dial" id="hundreds-dial" onclick="cycleDial('hundreds')">1</div>
                         </div>
                         <div class="dial-container">
-                            <div class="dial-label">十</div>
+                            <div class="dial-label"><strong>1</strong>0</div>
                             <div class="dial" id="tens-dial" onclick="cycleDial('tens')">6</div>
                         </div>
                         <div class="dial-container">
-                            <div class="dial-label">一</div>
+                            <div class="dial-label base-unit">1</div>
                             <div class="dial" id="ones-dial" onclick="cycleDial('ones')">0</div>
                         </div>
                     </div>
@@ -434,20 +440,20 @@
                 <div class="input-group">
                     <div class="turbidity-dials">
                         <div class="dial-container">
-                            <div class="dial-label">百</div>
+                            <div class="dial-label"><strong>1</strong>00</div>
                             <div class="dial" id="turbidity-hundreds-dial" onclick="cycleTurbidityDial('hundreds')">0</div>
                         </div>
                         <div class="dial-container">
-                            <div class="dial-label">十</div>
+                            <div class="dial-label"><strong>1</strong>0</div>
                             <div class="dial" id="turbidity-tens-dial" onclick="cycleTurbidityDial('tens')">0</div>
                         </div>
                         <div class="dial-container">
-                            <div class="dial-label">一</div>
+                            <div class="dial-label base-unit">1</div>
                             <div class="dial" id="turbidity-ones-dial" onclick="cycleTurbidityDial('ones')">0</div>
                         </div>
                         <div class="decimal-point">.</div>
                         <div class="dial-container">
-                            <div class="dial-label">小数</div>
+                            <div class="dial-label">0.1</div>
                             <div class="dial" id="turbidity-decimal-dial" onclick="cycleTurbidityDial('decimal')">0</div>
                         </div>
                     </div>
@@ -471,15 +477,15 @@
                     <label>PAC増量分（mg/L）</label>
                     <div class="pac-correction-dials">
                         <div class="dial-container">
-                            <div class="dial-label">符号</div>
+                            <div class="dial-label">+/-</div>
                             <div class="dial" id="pac-sign-dial" onclick="cyclePacDial('sign')">+</div>
                         </div>
                         <div class="dial-container">
-                            <div class="dial-label">十</div>
+                            <div class="dial-label"><strong>1</strong>0</div>
                             <div class="dial" id="pac-tens-dial" onclick="cyclePacDial('tens')">0</div>
                         </div>
                         <div class="dial-container">
-                            <div class="dial-label">一</div>
+                            <div class="dial-label base-unit">1</div>
                             <div class="dial" id="pac-ones-dial" onclick="cyclePacDial('ones')">0</div>
                         </div>
                     </div>
@@ -494,15 +500,15 @@
                     <label>苛性ソーダ調整（％）</label>
                     <div class="caustic-adjustment">
                         <div class="dial-container">
-                            <div class="dial-label">符号</div>
+                            <div class="dial-label">+/-</div>
                             <div class="dial" id="caustic-sign-dial" onclick="cycleCausticDial('sign')">+</div>
                         </div>
                         <div class="dial-container">
-                            <div class="dial-label">十</div>
+                            <div class="dial-label"><strong>1</strong>0</div>
                             <div class="dial" id="caustic-tens-dial" onclick="cycleCausticDial('tens')">0</div>
                         </div>
                         <div class="dial-container">
-                            <div class="dial-label">一</div>
+                            <div class="dial-label base-unit">1</div>
                             <div class="dial" id="caustic-ones-dial" onclick="cycleCausticDial('ones')">0</div>
                         </div>
                     </div>
