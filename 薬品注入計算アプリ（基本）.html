@@ -254,6 +254,28 @@
         text-shadow: 1px 1px 2px rgba(220, 53, 69, 0.3);
     }
 
+    .pac-correction-dials {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        justify-content: center;
+        margin: 10px 0;
+    }
+
+    .pac-correction-display {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 16px;
+        color: #495057;
+    }
+
+    .pac-correction-unit {
+        font-weight: bold;
+        color: #6f42c1;
+        font-size: 18px;
+        text-shadow: 1px 1px 2px rgba(111, 66, 193, 0.3);
+    }
+
     .calc-btn {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         color: white;
@@ -446,8 +468,26 @@
             <h2>⚙️ その他設定</h2>
             <div class="input-grid">
                 <div class="input-group">
-                    <label for="pac-correction">PAC増量分（mg/L）</label>
-                    <input type="number" id="pac-correction" step="1" placeholder="0" value="0" onchange="savePacCorrection()" oninput="savePacCorrection()">
+                    <label>PAC増量分（mg/L）</label>
+                    <div class="pac-correction-dials">
+                        <div class="dial-container">
+                            <div class="dial-label">符号</div>
+                            <div class="dial" id="pac-sign-dial" onclick="cyclePacDial('sign')">+</div>
+                        </div>
+                        <div class="dial-container">
+                            <div class="dial-label">十</div>
+                            <div class="dial" id="pac-tens-dial" onclick="cyclePacDial('tens')">0</div>
+                        </div>
+                        <div class="dial-container">
+                            <div class="dial-label">一</div>
+                            <div class="dial" id="pac-ones-dial" onclick="cyclePacDial('ones')">0</div>
+                        </div>
+                    </div>
+                    <div class="pac-correction-display">
+                        <span id="pac-correction-value">+0</span> <span class="pac-correction-unit">mg/L</span>
+                    </div>
+                    <!-- 隠しinput要素で計算用の値を保持 -->
+                    <input type="hidden" id="pac-correction" value="0">
                 </div>
                 
                 <div class="input-group">
@@ -660,18 +700,6 @@
         console.log('デフォルト設定にリセットしました');
     }
 
-    // PAC補正値の保存・読み込み
-    function savePacCorrection() {
-        const pacCorrection = document.getElementById('pac-correction').value;
-        localStorage.setItem('basic-pac-correction', pacCorrection);
-    }
-
-    function loadPacCorrection() {
-        const saved = localStorage.getItem('basic-pac-correction');
-        if (saved !== null) {
-            document.getElementById('pac-correction').value = saved;
-        }
-    }
 
     // 原水流量ダイヤル値の保存・読み込み
     function saveFlowRateDials() {
@@ -765,6 +793,37 @@
                 console.log('苛性ソーダ調整ダイヤル値を復元しました:', dialData);
             } catch (e) {
                 console.warn('苛性ソーダ調整ダイヤル値の復元に失敗しました:', e);
+            }
+        }
+    }
+
+    // PAC補正ダイヤル値の保存・読み込み
+    function savePacDials() {
+        const dialData = {
+            sign: pacDialValues.sign,
+            tens: pacDialValues.tens,
+            ones: pacDialValues.ones
+        };
+        localStorage.setItem('basic-pac-dials', JSON.stringify(dialData));
+    }
+
+    function loadPacDials() {
+        const saved = localStorage.getItem('basic-pac-dials');
+        if (saved !== null) {
+            try {
+                const dialData = JSON.parse(saved);
+                pacDialValues.sign = dialData.sign || 0;
+                pacDialValues.tens = dialData.tens || 0;
+                pacDialValues.ones = dialData.ones || 0;
+                
+                // ダイヤル表示を更新
+                document.getElementById('pac-sign-dial').textContent = pacDialValues.sign === 0 ? '+' : '-';
+                document.getElementById('pac-tens-dial').textContent = pacDialValues.tens;
+                document.getElementById('pac-ones-dial').textContent = pacDialValues.ones;
+                
+                console.log('PAC補正ダイヤル値を復元しました:', dialData);
+            } catch (e) {
+                console.warn('PAC補正ダイヤル値の復元に失敗しました:', e);
             }
         }
     }
@@ -868,6 +927,13 @@
 
     // 苛性ソーダ調整ダイヤルの状態管理
     let causticDialValues = {
+        sign: 0,  // 0: +, 1: -
+        tens: 0,
+        ones: 0
+    };
+
+    // PAC補正ダイヤルの状態管理
+    let pacDialValues = {
         sign: 0,  // 0: +, 1: -
         tens: 0,
         ones: 0
@@ -1008,6 +1074,46 @@
         console.log('苛性ソーダ調整値更新:', displayValue + ' ％');
     }
 
+    // PAC補正ダイヤルをクリックして値を変更
+    function cyclePacDial(position) {
+        const dial = document.getElementById('pac-' + position + '-dial');
+        const maxValues = {
+            sign: 1,  // 0-1 (+/-)
+            tens: 9,  // 0-9
+            ones: 9   // 0-9
+        };
+
+        pacDialValues[position] = (pacDialValues[position] + 1) % (maxValues[position] + 1);
+        
+        // 表示更新
+        if (position === 'sign') {
+            dial.textContent = pacDialValues[position] === 0 ? '+' : '-';
+        } else {
+            dial.textContent = pacDialValues[position];
+        }
+        
+        // 値が変更されたときの視覚効果
+        dial.classList.add('active');
+        setTimeout(() => {
+            dial.classList.remove('active');
+        }, 200);
+
+        updatePacCorrection();
+        savePacDials(); // PAC補正ダイヤル値を保存
+    }
+
+    // PAC補正値の表示更新
+    function updatePacCorrection() {
+        const sign = pacDialValues.sign === 0 ? '+' : '-';
+        const value = pacDialValues.tens * 10 + pacDialValues.ones;
+        const actualValue = (pacDialValues.sign === 0 ? 1 : -1) * value;
+        const displayValue = sign + value;
+        
+        document.getElementById('pac-correction-value').textContent = displayValue;
+        document.getElementById('pac-correction').value = actualValue;
+        console.log('PAC補正値更新:', displayValue + ' mg/L');
+    }
+
     // 濁度選択肢を動的生成
     function initializeTurbiditySelectors() {
         const integerSelect = document.getElementById('turbidity-integer');
@@ -1036,10 +1142,11 @@
         loadFlowRateDials(); // 原水流量ダイヤル値を読み込み
         loadTurbidityDials(); // 濁度ダイヤル値を読み込み
         loadCausticDials(); // 苛性ソーダ調整ダイヤル値を読み込み
+        loadPacDials(); // PAC補正ダイヤル値を読み込み
         updateFlowRate(); // ダイヤルの初期値を反映
         updateTurbidity(); // 濁度ダイヤルの初期値を反映
         updateCausticAdjustment(); // 苛性ソーダ調整値の初期値を反映
-        loadPacCorrection(); // PAC補正値を読み込み
+        updatePacCorrection(); // PAC補正値の初期値を反映
         // 基本版は常にデフォルト設定で起動
         addTouchSupport(); // iPad/タッチデバイス対応
         console.log('薬品注入計算アプリ（基本）初期化完了 - デフォルト設定使用');
