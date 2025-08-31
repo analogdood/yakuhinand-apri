@@ -224,6 +224,27 @@
         box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
     }
 
+    .dial.sign-plus {
+        border-color: #dc3545;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    }
+
+    .dial.sign-minus {
+        border-color: #007bff;
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    }
+
+    .dial.zero-value {
+        border-color: #6c757d !important;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+        color: #495057 !important;
+        box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2) !important;
+    }
+
     .flow-rate-display {
         text-align: center;
         margin-top: 10px;
@@ -792,9 +813,25 @@
                 causticDialValues.ones = dialData.ones || 0;
                 
                 // ダイヤル表示を更新
-                document.getElementById('caustic-sign-dial').textContent = causticDialValues.sign === 0 ? '+' : '-';
-                document.getElementById('caustic-tens-dial').textContent = causticDialValues.tens;
-                document.getElementById('caustic-ones-dial').textContent = causticDialValues.ones;
+                const causticSignDial = document.getElementById('caustic-sign-dial');
+                causticSignDial.textContent = causticDialValues.sign === 0 ? '+' : '-';
+                causticSignDial.classList.remove('sign-plus', 'sign-minus', 'zero-value');
+                if (causticDialValues.sign === 0) {
+                    causticSignDial.classList.add('zero-value'); // +のときは白
+                } else {
+                    causticSignDial.classList.add('sign-minus'); // -のときは青
+                }
+                
+                const causticTensDial = document.getElementById('caustic-tens-dial');
+                const causticOnesDial = document.getElementById('caustic-ones-dial');
+                causticTensDial.textContent = causticDialValues.tens;
+                causticOnesDial.textContent = causticDialValues.ones;
+                
+                // 0値の白背景を適用
+                causticTensDial.classList.remove('zero-value');
+                causticOnesDial.classList.remove('zero-value');
+                if (causticDialValues.tens === 0) causticTensDial.classList.add('zero-value');
+                if (causticDialValues.ones === 0) causticOnesDial.classList.add('zero-value');
                 
                 console.log('苛性ソーダ調整ダイヤル値を復元しました:', dialData);
             } catch (e) {
@@ -823,9 +860,25 @@
                 pacDialValues.ones = dialData.ones || 0;
                 
                 // ダイヤル表示を更新
-                document.getElementById('pac-sign-dial').textContent = pacDialValues.sign === 0 ? '+' : '-';
-                document.getElementById('pac-tens-dial').textContent = pacDialValues.tens;
-                document.getElementById('pac-ones-dial').textContent = pacDialValues.ones;
+                const pacSignDial = document.getElementById('pac-sign-dial');
+                pacSignDial.textContent = pacDialValues.sign === 0 ? '+' : '-';
+                pacSignDial.classList.remove('sign-plus', 'sign-minus', 'zero-value');
+                if (pacDialValues.sign === 0) {
+                    pacSignDial.classList.add('zero-value'); // +のときは白
+                } else {
+                    pacSignDial.classList.add('sign-minus'); // -のときは青
+                }
+                
+                const pacTensDial = document.getElementById('pac-tens-dial');
+                const pacOnesDial = document.getElementById('pac-ones-dial');
+                pacTensDial.textContent = pacDialValues.tens;
+                pacOnesDial.textContent = pacDialValues.ones;
+                
+                // 0値の白背景を適用
+                pacTensDial.classList.remove('zero-value');
+                pacOnesDial.classList.remove('zero-value');
+                if (pacDialValues.tens === 0) pacTensDial.classList.add('zero-value');
+                if (pacDialValues.ones === 0) pacOnesDial.classList.add('zero-value');
                 
                 console.log('PAC補正ダイヤル値を復元しました:', dialData);
             } catch (e) {
@@ -1056,8 +1109,20 @@
         // 表示更新
         if (position === 'sign') {
             dial.textContent = causticDialValues[position] === 0 ? '+' : '-';
+            // 符号に応じて色を変更（0=+のときは白、1=-のときは青）
+            dial.classList.remove('sign-plus', 'sign-minus', 'zero-value');
+            if (causticDialValues[position] === 0) {
+                dial.classList.add('zero-value'); // +のときは白
+            } else {
+                dial.classList.add('sign-minus'); // -のときは青
+            }
         } else {
             dial.textContent = causticDialValues[position];
+            // 0のときは白背景、それ以外は通常スタイル
+            dial.classList.remove('zero-value');
+            if (causticDialValues[position] === 0) {
+                dial.classList.add('zero-value');
+            }
         }
         
         // 値が変更されたときの視覚効果
@@ -1094,8 +1159,20 @@
         // 表示更新
         if (position === 'sign') {
             dial.textContent = pacDialValues[position] === 0 ? '+' : '-';
+            // 符号に応じて色を変更（0=+のときは白、1=-のときは青）
+            dial.classList.remove('sign-plus', 'sign-minus', 'zero-value');
+            if (pacDialValues[position] === 0) {
+                dial.classList.add('zero-value'); // +のときは白
+            } else {
+                dial.classList.add('sign-minus'); // -のときは青
+            }
         } else {
             dial.textContent = pacDialValues[position];
+            // 0のときは白背景、それ以外は通常スタイル
+            dial.classList.remove('zero-value');
+            if (pacDialValues[position] === 0) {
+                dial.classList.add('zero-value');
+            }
         }
         
         // 値が変更されたときの視覚効果
@@ -1153,6 +1230,14 @@
         updateTurbidity(); // 濁度ダイヤルの初期値を反映
         updateCausticAdjustment(); // 苛性ソーダ調整値の初期値を反映
         updatePacCorrection(); // PAC補正値の初期値を反映
+        // 符号ダイヤルの初期色設定（+のときは白）
+        document.getElementById('pac-sign-dial').classList.add('zero-value');
+        document.getElementById('caustic-sign-dial').classList.add('zero-value');
+        // 初期0値のダイヤルに白背景を適用
+        document.getElementById('pac-tens-dial').classList.add('zero-value');
+        document.getElementById('pac-ones-dial').classList.add('zero-value');
+        document.getElementById('caustic-tens-dial').classList.add('zero-value');
+        document.getElementById('caustic-ones-dial').classList.add('zero-value');
         // 基本版は常にデフォルト設定で起動
         addTouchSupport(); // iPad/タッチデバイス対応
         console.log('薬品注入計算アプリ（基本）初期化完了 - デフォルト設定使用');
