@@ -232,6 +232,28 @@
         text-shadow: 1px 1px 2px rgba(40, 167, 69, 0.3);
     }
 
+    .caustic-adjustment {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        justify-content: center;
+        margin: 10px 0;
+    }
+
+    .caustic-display {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 16px;
+        color: #495057;
+    }
+
+    .caustic-unit {
+        font-weight: bold;
+        color: #dc3545;
+        font-size: 18px;
+        text-shadow: 1px 1px 2px rgba(220, 53, 69, 0.3);
+    }
+
     .calc-btn {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         color: white;
@@ -426,6 +448,27 @@
                 <div class="input-group">
                     <label for="pac-correction">PAC増量分（mg/L）</label>
                     <input type="number" id="pac-correction" step="1" placeholder="0" value="0" onchange="savePacCorrection()" oninput="savePacCorrection()">
+                </div>
+                
+                <div class="input-group">
+                    <label>苛性ソーダ調整（％）</label>
+                    <div class="caustic-adjustment">
+                        <div class="dial-container">
+                            <div class="dial-label">符号</div>
+                            <div class="dial" id="caustic-sign-dial" onclick="cycleCausticDial('sign')">+</div>
+                        </div>
+                        <div class="dial-container">
+                            <div class="dial-label">十</div>
+                            <div class="dial" id="caustic-tens-dial" onclick="cycleCausticDial('tens')">0</div>
+                        </div>
+                        <div class="dial-container">
+                            <div class="dial-label">一</div>
+                            <div class="dial" id="caustic-ones-dial" onclick="cycleCausticDial('ones')">0</div>
+                        </div>
+                    </div>
+                    <div class="caustic-display">
+                        <span id="caustic-adjustment-value">+0</span> <span class="caustic-unit">％</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -695,6 +738,37 @@
         }
     }
 
+    // 苛性ソーダ調整ダイヤル値の保存・読み込み
+    function saveCausticDials() {
+        const dialData = {
+            sign: causticDialValues.sign,
+            tens: causticDialValues.tens,
+            ones: causticDialValues.ones
+        };
+        localStorage.setItem('basic-caustic-dials', JSON.stringify(dialData));
+    }
+
+    function loadCausticDials() {
+        const saved = localStorage.getItem('basic-caustic-dials');
+        if (saved !== null) {
+            try {
+                const dialData = JSON.parse(saved);
+                causticDialValues.sign = dialData.sign || 0;
+                causticDialValues.tens = dialData.tens || 0;
+                causticDialValues.ones = dialData.ones || 0;
+                
+                // ダイヤル表示を更新
+                document.getElementById('caustic-sign-dial').textContent = causticDialValues.sign === 0 ? '+' : '-';
+                document.getElementById('caustic-tens-dial').textContent = causticDialValues.tens;
+                document.getElementById('caustic-ones-dial').textContent = causticDialValues.ones;
+                
+                console.log('苛性ソーダ調整ダイヤル値を復元しました:', dialData);
+            } catch (e) {
+                console.warn('苛性ソーダ調整ダイヤル値の復元に失敗しました:', e);
+            }
+        }
+    }
+
     // iPad/タッチデバイス対応のタップ処理改善
     function addTouchSupport() {
         const calcBtn = document.querySelector('.calc-btn');
@@ -753,7 +827,14 @@
         pacRate += pacCorrection;
 
         // 苛性ソーダ注入率計算（詳細版と同じ計算式）
-        const causticRate = (currentSettings.causticA2 + currentSettings.causticK * pacRate - currentSettings.rawAlkalinity) * currentSettings.causticF;
+        let causticRate = (currentSettings.causticA2 + currentSettings.causticK * pacRate - currentSettings.rawAlkalinity) * currentSettings.causticF;
+        
+        // 苛性ソーダ％調整を適用
+        const causticSign = causticDialValues.sign === 0 ? 1 : -1;
+        const causticAdjustment = causticSign * (causticDialValues.tens * 10 + causticDialValues.ones);
+        causticRate = causticRate * (1 + causticAdjustment / 100);
+        
+        console.log('苛性ソーダ調整:', causticAdjustment + '％', '調整後:', causticRate.toFixed(1), 'mg/L');
 
         // 注入量計算 (L/h)
         const pacVolume = (pacRate * flowRate) / (currentSettings.chemicalDensity * currentSettings.unitConversion);
@@ -783,6 +864,13 @@
         tens: 0,
         ones: 0,
         decimal: 0
+    };
+
+    // 苛性ソーダ調整ダイヤルの状態管理
+    let causticDialValues = {
+        sign: 0,  // 0: +, 1: -
+        tens: 0,
+        ones: 0
     };
 
     // ダイヤルをクリックして値を変更
@@ -882,6 +970,44 @@
         console.log('濁度更新:', turbidity.toFixed(1) + ' 度');
     }
 
+    // 苛性ソーダ調整ダイヤルをクリックして値を変更
+    function cycleCausticDial(position) {
+        const dial = document.getElementById('caustic-' + position + '-dial');
+        const maxValues = {
+            sign: 1,  // 0-1 (+/-)
+            tens: 9,  // 0-9
+            ones: 9   // 0-9
+        };
+
+        causticDialValues[position] = (causticDialValues[position] + 1) % (maxValues[position] + 1);
+        
+        // 表示更新
+        if (position === 'sign') {
+            dial.textContent = causticDialValues[position] === 0 ? '+' : '-';
+        } else {
+            dial.textContent = causticDialValues[position];
+        }
+        
+        // 値が変更されたときの視覚効果
+        dial.classList.add('active');
+        setTimeout(() => {
+            dial.classList.remove('active');
+        }, 200);
+
+        updateCausticAdjustment();
+        saveCausticDials(); // 苛性ソーダ調整値を保存
+    }
+
+    // 苛性ソーダ調整値の表示更新
+    function updateCausticAdjustment() {
+        const sign = causticDialValues.sign === 0 ? '+' : '-';
+        const value = causticDialValues.tens * 10 + causticDialValues.ones;
+        const displayValue = sign + value;
+        
+        document.getElementById('caustic-adjustment-value').textContent = displayValue;
+        console.log('苛性ソーダ調整値更新:', displayValue + ' ％');
+    }
+
     // 濁度選択肢を動的生成
     function initializeTurbiditySelectors() {
         const integerSelect = document.getElementById('turbidity-integer');
@@ -909,8 +1035,10 @@
         initializeTurbiditySelectors();
         loadFlowRateDials(); // 原水流量ダイヤル値を読み込み
         loadTurbidityDials(); // 濁度ダイヤル値を読み込み
+        loadCausticDials(); // 苛性ソーダ調整ダイヤル値を読み込み
         updateFlowRate(); // ダイヤルの初期値を反映
         updateTurbidity(); // 濁度ダイヤルの初期値を反映
+        updateCausticAdjustment(); // 苛性ソーダ調整値の初期値を反映
         loadPacCorrection(); // PAC補正値を読み込み
         // 基本版は常にデフォルト設定で起動
         addTouchSupport(); // iPad/タッチデバイス対応
