@@ -1034,43 +1034,14 @@
         const dial = document.getElementById('turbidity-' + position + '-dial');
         const maxValues = {
             hundreds: 1, // 0-1 (最大150度)
-            tens: 5,     // 0-5 (但し百の位が1の時は5まで)
+            tens: 9,     // 0-9 (百の位が1の時も9まで可能)
             ones: 9,     // 0-9
             decimal: 9   // 0-9
         };
 
-        // 百の位が1の場合、十の位は5までに制限
-        if (position === 'tens' && turbidityDialValues.hundreds === 1) {
-            maxValues.tens = 5;
-        }
-        
-        // 百の位が1、十の位が5の場合、一の位は0までに制限（150度まで）
-        if (position === 'ones' && turbidityDialValues.hundreds === 1 && turbidityDialValues.tens === 5) {
-            maxValues.ones = 0;
-        }
-
+        // 百の位が1の場合でも十の位は9まで設定可能（150度以上も可能）
         turbidityDialValues[position] = (turbidityDialValues[position] + 1) % (maxValues[position] + 1);
         dial.textContent = turbidityDialValues[position];
-        
-        // 百の位が変更された場合、十の位と一の位を調整
-        if (position === 'hundreds' && turbidityDialValues[position] === 1) {
-            if (turbidityDialValues.tens > 5) {
-                turbidityDialValues.tens = 0;
-                document.getElementById('turbidity-tens-dial').textContent = 0;
-            }
-            if (turbidityDialValues.tens === 5 && turbidityDialValues.ones > 0) {
-                turbidityDialValues.ones = 0;
-                document.getElementById('turbidity-ones-dial').textContent = 0;
-            }
-        }
-        
-        // 十の位が変更された場合、一の位を調整
-        if (position === 'tens' && turbidityDialValues.hundreds === 1 && turbidityDialValues.tens === 5) {
-            if (turbidityDialValues.ones > 0) {
-                turbidityDialValues.ones = 0;
-                document.getElementById('turbidity-ones-dial').textContent = 0;
-            }
-        }
         
         // 値が変更されたときの視覚効果
         dial.classList.add('active');
