@@ -251,8 +251,10 @@
             <label for="calc-mode">計算モード</label>
             <select id="calc-mode" onchange="toggleMode()">
                 <option value="slurry">スラリー注入</option>
-                <option value="direct">直接投入</option>
+                <option value="remaining">タンク残量計算</option>
                 <option value="duration">タンク持続時間→濃度</option>
+                <option value="injection-rate">注入速度→濃度・残量</option>
+                <option value="direct">直接投入</option>
             </select>
         </div>
         
@@ -305,6 +307,38 @@
             <label for="tank-duration-hours">タンクを使い切る時間（時間）</label>
             <input type="number" id="tank-duration-hours" step="0.5" min="0.5" placeholder="例: 8.0">
         </div>
+
+        <!-- タンク残量計算モード用入力 -->
+        <div class="input-group" id="remaining-inputs1" style="display: none;">
+            <label for="remaining-volume">現在のタンク残量（L）</label>
+            <input type="number" id="remaining-volume" min="0" max="500" step="10" placeholder="例: 300">
+        </div>
+
+        <div class="input-group" id="remaining-inputs2" style="display: none;">
+            <label for="remaining-bag-count">タンクに入れた活性炭袋数（1～10袋）</label>
+            <input type="number" id="remaining-bag-count" min="1" max="10" value="1" placeholder="例: 2">
+        </div>
+
+        <div class="input-group" id="remaining-inputs3" style="display: none;">
+            <label for="remaining-target-concentration">目標活性炭濃度（mg/L）</label>
+            <input type="number" id="remaining-target-concentration" step="0.1" placeholder="例: 10.0">
+        </div>
+
+        <!-- 注入速度→濃度・残量計算モード用入力 -->
+        <div class="input-group" id="injection-rate-inputs1" style="display: none;">
+            <label for="injection-bag-count">タンクに入れた活性炭袋数（1～10袋）</label>
+            <input type="number" id="injection-bag-count" min="1" max="10" value="1" placeholder="例: 2">
+        </div>
+
+        <div class="input-group" id="injection-rate-inputs2" style="display: none;">
+            <label for="injection-tank-volume">現在のタンク残量（L）</label>
+            <input type="number" id="injection-tank-volume" min="0" max="500" value="500" placeholder="例: 500">
+        </div>
+
+        <div class="input-group" id="injection-rate-inputs3" style="display: none;">
+            <label for="injection-ml-per-min">1分間の注入量（ml/分）</label>
+            <input type="number" id="injection-ml-per-min" min="1" step="10" placeholder="例: 200">
+        </div>
     </div>
     
     <button class="calculate-btn" onclick="calculate()">計算実行</button>
@@ -335,7 +369,7 @@
             <div class="result-card main-result" id="direct-result-2" style="display: none;">
                 <div class="result-title">💡 参考：袋数換算</div>
                 <div class="result-value main-value" id="direct-bag-equivalent">--</div>
-                <span class="result-unit">袋/日</span>
+                <span class="result-unit">袋/24時間</span>
             </div>
             
             <!-- タンク持続時間モード用結果 -->
@@ -349,6 +383,32 @@
                 <div class="result-title">💡 注入速度</div>
                 <div class="result-value main-value" id="injection-rate">--</div>
                 <span class="result-unit">ml/分</span>
+            </div>
+
+            <!-- タンク残量計算モード用結果 -->
+            <div class="result-card main-result" id="remaining-result-1" style="display: none;">
+                <div class="result-title">🎯 注入速度</div>
+                <div class="result-value main-value" id="remaining-injection-rate">--</div>
+                <span class="result-unit">ml/分</span>
+            </div>
+
+            <div class="result-card main-result" id="remaining-result-2" style="display: none;">
+                <div class="result-title">⏰ 残り時間</div>
+                <div class="result-value main-value" id="remaining-hours">--</div>
+                <span class="result-unit"></span>
+            </div>
+
+            <!-- 注入速度→濃度・残量計算モード用結果 -->
+            <div class="result-card main-result" id="injection-rate-result-1" style="display: none;">
+                <div class="result-title">🎯 達成濃度</div>
+                <div class="result-value main-value" id="achieved-concentration-rate">--</div>
+                <span class="result-unit">mg/L</span>
+            </div>
+
+            <div class="result-card main-result" id="injection-rate-result-2" style="display: none;">
+                <div class="result-title">⏰ 残り時間</div>
+                <div class="result-value main-value" id="injection-rate-hours">--</div>
+                <span class="result-unit"></span>
             </div>
             
             <div class="result-card sub-result" id="ref-injection-hour">
@@ -427,7 +487,13 @@
         document.getElementById('direct-inputs').style.display = 'none';
         document.getElementById('duration-inputs1').style.display = 'none';
         document.getElementById('duration-inputs2').style.display = 'none';
-        
+        document.getElementById('remaining-inputs1').style.display = 'none';
+        document.getElementById('remaining-inputs2').style.display = 'none';
+        document.getElementById('remaining-inputs3').style.display = 'none';
+        document.getElementById('injection-rate-inputs1').style.display = 'none';
+        document.getElementById('injection-rate-inputs2').style.display = 'none';
+        document.getElementById('injection-rate-inputs3').style.display = 'none';
+
         // 全ての結果表示を非表示にしてから、選択されたモードのみ表示
         document.getElementById('slurry-result-1').style.display = 'none';
         document.getElementById('slurry-result-2').style.display = 'none';
@@ -435,6 +501,10 @@
         document.getElementById('direct-result-2').style.display = 'none';
         document.getElementById('duration-result-1').style.display = 'none';
         document.getElementById('duration-result-2').style.display = 'none';
+        document.getElementById('remaining-result-1').style.display = 'none';
+        document.getElementById('remaining-result-2').style.display = 'none';
+        document.getElementById('injection-rate-result-1').style.display = 'none';
+        document.getElementById('injection-rate-result-2').style.display = 'none';
         
         // 参考情報の表示制御
         document.getElementById('ref-injection-hour').style.display = 'none';
@@ -465,6 +535,26 @@
             document.getElementById('ref-slurry-concentration').style.display = 'block';
             document.getElementById('ref-carbon-weight').style.display = 'block';
             document.getElementById('result-title').textContent = '🎯 タンク持続時間計算結果';
+        } else if (mode === 'remaining') {
+            document.getElementById('remaining-inputs1').style.display = 'block';
+            document.getElementById('remaining-inputs2').style.display = 'block';
+            document.getElementById('remaining-inputs3').style.display = 'block';
+            document.getElementById('remaining-result-1').style.display = 'block';
+            document.getElementById('remaining-result-2').style.display = 'block';
+            document.getElementById('ref-injection-hour').style.display = 'block';
+            document.getElementById('ref-slurry-concentration').style.display = 'block';
+            document.getElementById('ref-carbon-weight').style.display = 'block';
+            document.getElementById('result-title').textContent = '🎯 タンク残量計算結果';
+        } else if (mode === 'injection-rate') {
+            document.getElementById('injection-rate-inputs1').style.display = 'block';
+            document.getElementById('injection-rate-inputs2').style.display = 'block';
+            document.getElementById('injection-rate-inputs3').style.display = 'block';
+            document.getElementById('injection-rate-result-1').style.display = 'block';
+            document.getElementById('injection-rate-result-2').style.display = 'block';
+            document.getElementById('ref-injection-hour').style.display = 'block';
+            document.getElementById('ref-slurry-concentration').style.display = 'block';
+            document.getElementById('ref-carbon-weight').style.display = 'block';
+            document.getElementById('result-title').textContent = '🎯 注入速度計算結果';
         }
     }
 
@@ -478,6 +568,10 @@
             calculateDirect(flowRate);
         } else if (mode === 'duration') {
             calculateDuration(flowRate);
+        } else if (mode === 'remaining') {
+            calculateRemaining(flowRate);
+        } else if (mode === 'injection-rate') {
+            calculateInjectionRate(flowRate);
         }
     }
     
@@ -654,6 +748,164 @@
             `袋数: ${bagCount}袋 | 流量: ${flowRate}㎥/h | 持続時間: ${durationHours}時間 | ` +
             `スラリー濃度: ${slurryConcentration.toFixed(2)}% | 注入速度: ${injectionVolumePerMin.toFixed(0)}ml/分`;
             
+        // 結果セクションを表示
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // タンク残量計算
+    function calculateRemaining(flowRate) {
+        const remainingVolume = parseFloat(document.getElementById('remaining-volume').value);
+        const bagCount = parseInt(document.getElementById('remaining-bag-count').value);
+        const targetConcentration = parseFloat(document.getElementById('remaining-target-concentration').value);
+
+        // バリデーション
+        if (isNaN(flowRate) || isNaN(remainingVolume) || isNaN(bagCount) || isNaN(targetConcentration)) {
+            alert('必須項目をすべて正しく入力してください。');
+            return;
+        }
+
+        if (bagCount < 1 || bagCount > 10) {
+            alert('活性炭袋数は1～10袋の範囲で入力してください。');
+            return;
+        }
+
+        if (remainingVolume <= 0 || remainingVolume > 500) {
+            alert('タンク残量は0～500Lの範囲で入力してください。');
+            return;
+        }
+
+        if (targetConcentration <= 0) {
+            alert('目標活性炭濃度は正の値を入力してください。');
+            return;
+        }
+
+        // 計算定数
+        const bagWeight = 10; // kg/袋
+        const carbonRatio = 0.5; // 50%が活性炭
+        const tankVolume = 500; // L（元のタンク容量）
+
+        // 1. 活性炭重量（kg）
+        const carbonWeight = bagCount * bagWeight * carbonRatio;
+
+        // 2. 元のスラリー濃度（%）
+        const slurryConcentration = (carbonWeight / tankVolume) * 100;
+
+        // 3. スラリー中活性炭濃度（mg/L）
+        // 活性炭は500Lに対して溶かしているので、残量でも同じ濃度
+        const slurryCarbonConcentration = slurryConcentration * 10; // % → mg/L (% × 10 = mg/L)
+
+        // 4. 1分間の注入量（ml/分）
+        const injectionVolumePerMinRaw = (targetConcentration * flowRate * 1000) / slurryCarbonConcentration / 60;
+        const injectionVolumePerMin = Math.round(injectionVolumePerMinRaw / 10) * 10;
+
+        // 5. 1時間あたりの注入量（L/時）
+        const injectionVolumePerHour = (injectionVolumePerMin * 60) / 1000;
+
+        // 6. 残り時間の計算
+        const remainingMinutes = (remainingVolume * 1000) / injectionVolumePerMin;
+        const remainingHours = Math.floor(remainingMinutes / 60);
+        const remainingMins = Math.round(remainingMinutes % 60);
+
+        // 結果の表示
+        document.getElementById('remaining-injection-rate').textContent = injectionVolumePerMin.toFixed(0);
+
+        let remainingTimeDisplay;
+        if (remainingHours > 0) {
+            remainingTimeDisplay = `${remainingHours}時間${remainingMins}分`;
+        } else {
+            remainingTimeDisplay = `${remainingMins}分`;
+        }
+        document.getElementById('remaining-hours').textContent = remainingTimeDisplay;
+
+        // 参考情報の表示
+        document.getElementById('injection-volume-hour').textContent = injectionVolumePerHour.toFixed(2);
+        document.getElementById('slurry-concentration').textContent = slurryConcentration.toFixed(2);
+        document.getElementById('carbon-weight').textContent = carbonWeight.toFixed(1);
+
+        // 計算詳細情報
+        document.getElementById('calculation-info').textContent =
+            `残量: ${remainingVolume}L | 袋数: ${bagCount}袋 | 流量: ${flowRate}㎥/h | ` +
+            `目標濃度: ${targetConcentration}mg/L | スラリー濃度: ${slurryCarbonConcentration.toFixed(0)}mg/L`;
+
+        // 結果セクションを表示
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // 注入速度→濃度・残量計算
+    function calculateInjectionRate(flowRate) {
+        const bagCount = parseInt(document.getElementById('injection-bag-count').value);
+        const tankVolume = parseFloat(document.getElementById('injection-tank-volume').value);
+        const injectionVolumePerMin = parseFloat(document.getElementById('injection-ml-per-min').value);
+
+        // バリデーション
+        if (isNaN(flowRate) || isNaN(bagCount) || isNaN(tankVolume) || isNaN(injectionVolumePerMin)) {
+            alert('必須項目をすべて正しく入力してください。');
+            return;
+        }
+
+        if (bagCount < 1 || bagCount > 10) {
+            alert('活性炭袋数は1～10袋の範囲で入力してください。');
+            return;
+        }
+
+        if (tankVolume <= 0 || tankVolume > 500) {
+            alert('タンク残量は0～500Lの範囲で入力してください。');
+            return;
+        }
+
+        if (injectionVolumePerMin <= 0) {
+            alert('1分間の注入量は正の値を入力してください。');
+            return;
+        }
+
+        // 計算定数
+        const bagWeight = 10; // kg/袋
+        const carbonRatio = 0.5; // 50%が活性炭
+        const originalTankVolume = 500; // L（元のタンク容量）
+
+        // 1. 活性炭重量（kg）
+        const carbonWeight = bagCount * bagWeight * carbonRatio;
+
+        // 2. スラリー濃度（%）- 元の500Lに対する濃度
+        const slurryConcentration = (carbonWeight / originalTankVolume) * 100;
+
+        // 3. スラリー中活性炭濃度（mg/L）
+        const slurryCarbonConcentration = slurryConcentration * 10; // % → mg/L
+
+        // 4. 達成濃度（mg/L）を逆算
+        const achievedConcentration = (injectionVolumePerMin * slurryCarbonConcentration * 60) / (flowRate * 1000);
+
+        // 5. 1時間あたりの注入量（L/時）
+        const injectionVolumePerHour = (injectionVolumePerMin * 60) / 1000;
+
+        // 6. 残り時間の計算
+        const remainingMinutes = (tankVolume * 1000) / injectionVolumePerMin;
+        const remainingHours = Math.floor(remainingMinutes / 60);
+        const remainingMins = Math.round(remainingMinutes % 60);
+
+        // 結果の表示
+        document.getElementById('achieved-concentration-rate').textContent = achievedConcentration.toFixed(1);
+
+        let remainingTimeDisplay;
+        if (remainingHours > 0) {
+            remainingTimeDisplay = `${remainingHours}時間${remainingMins}分`;
+        } else {
+            remainingTimeDisplay = `${remainingMins}分`;
+        }
+        document.getElementById('injection-rate-hours').textContent = remainingTimeDisplay;
+
+        // 参考情報の表示
+        document.getElementById('injection-volume-hour').textContent = injectionVolumePerHour.toFixed(2);
+        document.getElementById('slurry-concentration').textContent = slurryConcentration.toFixed(2);
+        document.getElementById('carbon-weight').textContent = carbonWeight.toFixed(1);
+
+        // 計算詳細情報
+        document.getElementById('calculation-info').textContent =
+            `袋数: ${bagCount}袋 | 残量: ${tankVolume}L | 流量: ${flowRate}㎥/h | ` +
+            `注入速度: ${injectionVolumePerMin}ml/分 | スラリー濃度: ${slurryCarbonConcentration.toFixed(0)}mg/L`;
+
         // 結果セクションを表示
         document.getElementById('results').style.display = 'block';
         document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
