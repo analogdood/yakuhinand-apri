@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パックテスト アルミニウム分析アプリ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto 20px;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #video {
+            width: 100%;
+            display: block;
+        }
+        
+        #canvas {
+            display: none;
+        }
+        
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border: 3px solid #00ff00;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        
+        .crosshair::before,
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            background: #00ff00;
+        }
+        
+        .crosshair::before {
+            left: 50%;
+            top: -10px;
+            bottom: -10px;
+            width: 2px;
+            transform: translateX(-50%);
+        }
+        
+        .crosshair::after {
+            top: 50%;
+            left: -10px;
+            right: -10px;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .btn-capture {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-size: 18px;
+        }
+        
+        .results {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .result-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .result-value {
+            font-size: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .color-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+        }
+        
+        .info-box li {
+            margin: 5px 0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .standard-colors {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .standard-color-item {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .standard-color-box {
+            width: 100%;
+            height: 50px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .standard-color-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 パックテスト アルミニウム分析</h1>
+            <p>カメラで撮影して、より詳細な数値を測定します</p>
+        </div>
+        
+        <div class="content">
+            <div class="camera-container" id="cameraContainer">
+                <video id="video" autoplay playsinline></video>
+                <div class="crosshair"></div>
+            </div>
+            
+            <canvas id="canvas"></canvas>
+            
+            <div class="controls">
+                <button class="btn-primary" id="startCamera">📷 カメラ起動</button>
+                <button class="btn-capture hidden" id="capture">📸 測定する</button>
+                <button class="btn-secondary hidden" id="reset">🔄 リセット</button>
+            </div>
+            
+            <div class="results hidden" id="results">
+                <h2 style="margin-bottom: 20px; color: #333;">測定結果</h2>
+                
+                <div class="result-item">
+                    <span class="result-label">推定濃度</span>
+                    <span class="result-value" id="concentration">-</span>
+                </div>
+                
+                <div class="result-item">
+                    <span class="result-label">検出色</span>
+                    <div class="color-preview" id="colorPreview"></div>
+                </div>
+                
+                <div class="result-item">
+                    <span class="result-label">RGB値</span>
+                    <span class="result-value" id="rgbValue">-</span>
+                </div>
+                
+                <div class="result-item">
+                    <span class="result-label">信頼度</span>
+                    <span class="result-value" id="confidence">-</span>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <h3>📋 使い方</h3>
+                <ul>
+                    <li>パックテストの発色部分を緑色の枠内に合わせてください</li>
+                    <li>明るい場所で、影が入らないように撮影してください</li>
+                    <li>できるだけカメラを垂直に保ってください</li>
+                    <li>標準色カードが近くにあるとより正確です</li>
+                </ul>
+            </div>
+            
+            <div class="info-box" style="background: #fff3e0; border-left-color: #ff9800;">
+                <h3>🎨 標準色データ（アルミニウム）</h3>
+                <div class="standard-colors" id="standardColors"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 標準色データ（アルミニウム検出用）
+        // パックテストWAK-Alの標準色を参考
+        const standardColors = [
+            { concentration: 0, rgb: [245, 245, 250], label: '0 mg/L' },
+            { concentration: 0.05, rgb: [220, 225, 245], label: '0.05 mg/L' },
+            { concentration: 0.1, rgb: [200, 210, 240], label: '0.1 mg/L' },
+            { concentration: 0.2, rgb: [180, 195, 235], label: '0.2 mg/L' },
+            { concentration: 0.5, rgb: [150, 170, 225], label: '0.5 mg/L' },
+            { concentration: 1.0, rgb: [120, 145, 215], label: '1.0 mg/L' },
+        ];
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const startCameraBtn = document.getElementById('startCamera');
+        const captureBtn = document.getElementById('capture');
+        const resetBtn = document.getElementById('reset');
+        const resultsDiv = document.getElementById('results');
+        const cameraContainer = document.getElementById('cameraContainer');
+
+        let stream = null;
+
+        // 標準色を表示
+        function displayStandardColors() {
+            const container = document.getElementById('standardColors');
+            standardColors.forEach(color => {
+                const item = document.createElement('div');
+                item.className = 'standard-color-item';
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'standard-color-box';
+                colorBox.style.backgroundColor = `rgb(${color.rgb[0]}, ${color.rgb[1]}, ${color.rgb[2]})`;
+                
+                const label = document.createElement('div');
+                label.className = 'standard-color-label';
+                label.textContent = color.label;
+                
+                item.appendChild(colorBox);
+                item.appendChild(label);
+                container.appendChild(item);
+            });
+        }
+
+        // カメラ起動
+        startCameraBtn.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+                
+                video.srcObject = stream;
+                startCameraBtn.classList.add('hidden');
+                captureBtn.classList.remove('hidden');
+                resetBtn.classList.remove('hidden');
+            } catch (err) {
+                alert('カメラへのアクセスが拒否されました。設定を確認してください。');
+                console.error('カメラエラー:', err);
+            }
+        });
+
+        // 色の距離を計算（ユークリッド距離）
+        function colorDistance(rgb1, rgb2) {
+            return Math.sqrt(
+                Math.pow(rgb1[0] - rgb2[0], 2) +
+                Math.pow(rgb1[1] - rgb2[1], 2) +
+                Math.pow(rgb1[2] - rgb2[2], 2)
+            );
+        }
+
+        // 補間による濃度推定
+        function estimateConcentration(measuredRGB) {
+            let minDistance = Infinity;
+            let closestIndex = 0;
+            
+            // 最も近い標準色を見つける
+            standardColors.forEach((color, index) => {
+                const distance = colorDistance(measuredRGB, color.rgb);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestIndex = index;
+                }
+            });
+            
+            // 前後の標準色との距離で補間
+            if (closestIndex === 0) {
+                return standardColors[0].concentration;
+            } else if (closestIndex === standardColors.length - 1) {
+                return standardColors[standardColors.length - 1].concentration;
+            }
+            
+            const prev = standardColors[closestIndex - 1];
+            const curr = standardColors[closestIndex];
+            const next = standardColors[closestIndex + 1];
+            
+            const distPrev = colorDistance(measuredRGB, prev.rgb);
+            const distCurr = colorDistance(measuredRGB, curr.rgb);
+            const distNext = colorDistance(measuredRGB, next.rgb);
+            
+            // 最も近い2点間で線形補間
+            if (distPrev < distNext) {
+                const ratio = distCurr / (distPrev + distCurr);
+                return prev.concentration + ratio * (curr.concentration - prev.concentration);
+            } else {
+                const ratio = distCurr / (distNext + distCurr);
+                return curr.concentration + ratio * (next.concentration - curr.concentration);
+            }
+        }
+
+        // 信頼度計算
+        function calculateConfidence(measuredRGB) {
+            const distances = standardColors.map(color => 
+                colorDistance(measuredRGB, color.rgb)
+            );
+            const minDistance = Math.min(...distances);
+            
+            // 距離が近いほど信頼度が高い（最大255の距離を100%として計算）
+            const confidence = Math.max(0, 100 - (minDistance / 255 * 100));
+            return confidence;
+        }
+
+        // 撮影と分析
+        captureBtn.addEventListener('click', () => {
+            // キャンバスサイズを動画に合わせる
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // 現在のフレームをキャプチャ
+            ctx.drawImage(video, 0, 0);
+            
+            // 中心部分の色を取得（100x100ピクセルの平均）
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const sampleSize = 100;
+            
+            const imageData = ctx.getImageData(
+                centerX - sampleSize / 2,
+                centerY - sampleSize / 2,
+                sampleSize,
+                sampleSize
+            );
+            
+            // RGB平均値を計算
+            let r = 0, g = 0, b = 0;
+            const pixels = imageData.data;
+            const totalPixels = pixels.length / 4;
+            
+            for (let i = 0; i < pixels.length; i += 4) {
+                r += pixels[i];
+                g += pixels[i + 1];
+                b += pixels[i + 2];
+            }
+            
+            r = Math.round(r / totalPixels);
+            g = Math.round(g / totalPixels);
+            b = Math.round(b / totalPixels);
+            
+            const measuredRGB = [r, g, b];
+            
+            // 濃度を推定
+            const concentration = estimateConcentration(measuredRGB);
+            const confidence = calculateConfidence(measuredRGB);
+            
+            // 結果を表示
+            document.getElementById('concentration').textContent = 
+                concentration.toFixed(2) + ' mg/L';
+            document.getElementById('rgbValue').textContent = 
+                `R:${r} G:${g} B:${b}`;
+            document.getElementById('colorPreview').style.backgroundColor = 
+                `rgb(${r}, ${g}, ${b})`;
+            document.getElementById('confidence').textContent = 
+                confidence.toFixed(1) + '%';
+            
+            resultsDiv.classList.remove('hidden');
+            
+            // カメラを一時停止
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            
+            captureBtn.classList.add('hidden');
+        });
+
+        // リセット
+        resetBtn.addEventListener('click', () => {
+            resultsDiv.classList.add('hidden');
+            startCameraBtn.classList.remove('hidden');
+            captureBtn.classList.add('hidden');
+            resetBtn.classList.add('hidden');
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        });
+
+        // 初期化
+        displayStandardColors();
+    </script>
+</body>
+</html>
