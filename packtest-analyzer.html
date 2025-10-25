@@ -585,11 +585,11 @@
             );
         }
 
-        // 補間による濃度推定
+        // 補間による濃度推定（詳細値）
         function estimateConcentration(measuredRGB) {
             let minDistance = Infinity;
             let closestIndex = 0;
-            
+
             // 最も近い標準色を見つける
             standardColors.forEach((color, index) => {
                 const distance = colorDistance(measuredRGB, color.rgb);
@@ -598,22 +598,22 @@
                     closestIndex = index;
                 }
             });
-            
+
             // 前後の標準色との距離で補間
             if (closestIndex === 0) {
                 return standardColors[0].concentration;
             } else if (closestIndex === standardColors.length - 1) {
                 return standardColors[standardColors.length - 1].concentration;
             }
-            
+
             const prev = standardColors[closestIndex - 1];
             const curr = standardColors[closestIndex];
             const next = standardColors[closestIndex + 1];
-            
+
             const distPrev = colorDistance(measuredRGB, prev.rgb);
             const distCurr = colorDistance(measuredRGB, curr.rgb);
             const distNext = colorDistance(measuredRGB, next.rgb);
-            
+
             // 最も近い2点間で線形補間
             if (distPrev < distNext) {
                 const ratio = distCurr / (distPrev + distCurr);
@@ -622,6 +622,26 @@
                 const ratio = distCurr / (distNext + distCurr);
                 return curr.concentration + ratio * (next.concentration - curr.concentration);
             }
+        }
+
+        // 最も近い標準値を判定
+        function findNearestStandardValue(detailedValue) {
+            const standardValues = [0, 0.05, 0.1, 0.2, 0.5, 1.0];
+            let nearestValue = standardValues[0];
+            let minDiff = Math.abs(detailedValue - standardValues[0]);
+
+            for (let i = 1; i < standardValues.length; i++) {
+                const diff = Math.abs(detailedValue - standardValues[i]);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    nearestValue = standardValues[i];
+                } else if (diff === minDiff) {
+                    // 真ん中なら高い方を選択
+                    nearestValue = standardValues[i];
+                }
+            }
+
+            return nearestValue;
         }
 
         // 信頼度計算
@@ -695,12 +715,24 @@
                 captureBtn.classList.remove('btn-calibrate');
             } else {
                 // 通常の測定モード
-                const concentration = estimateConcentration(measuredRGB);
+                const detailedConcentration = estimateConcentration(measuredRGB);
+                const standardValue = findNearestStandardValue(detailedConcentration);
                 const confidence = calculateConfidence(measuredRGB);
 
-                // 結果を表示
-                document.getElementById('concentration').textContent =
-                    concentration.toFixed(2) + ' mg/L';
+                // 結果を表示（標準値 (詳細値) の形式）
+                let displayText;
+                // 標準値は不要な0を削除（0.20 → 0.2, 1.00 → 1）
+                const standardText = standardValue.toString();
+
+                if (Math.abs(standardValue - detailedConcentration) < 0.001) {
+                    // 標準値とほぼ一致する場合
+                    displayText = `${standardText} mg/L`;
+                } else {
+                    // 標準値と詳細値が異なる場合は括弧内に詳細値を表示（小数点2桁）
+                    displayText = `${standardText} (${detailedConcentration.toFixed(2)}) mg/L`;
+                }
+
+                document.getElementById('concentration').textContent = displayText;
                 document.getElementById('rgbValue').textContent =
                     `R:${r} G:${g} B:${b}`;
                 document.getElementById('colorPreview').style.backgroundColor =
