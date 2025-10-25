@@ -460,14 +460,14 @@
 
     <script>
         // デフォルト標準色データ（アルミニウム検出用）
-        // パックテストWAK-Alの標準色を参考
+        // パックテストWAK-Alの標準色を参考（HSVベース）
         const defaultStandardColors = [
-            { concentration: 0, rgb: [253, 229, 206], label: '0 mg/L' },
-            { concentration: 0.05, rgb: [253, 221, 200], label: '0.05 mg/L' },
-            { concentration: 0.1, rgb: [253, 209, 198], label: '0.1 mg/L' },
-            { concentration: 0.2, rgb: [252, 195, 201], label: '0.2 mg/L' },
-            { concentration: 0.5, rgb: [246, 167, 199], label: '0.5 mg/L' },
-            { concentration: 1.0, rgb: [235, 139, 193], label: '1.0 mg/L' },
+            { concentration: 0, hsv: [34, 19, 99], label: '0 mg/L' },
+            { concentration: 0.05, hsv: [24, 21, 99], label: '0.05 mg/L' },
+            { concentration: 0.1, hsv: [12, 22, 99], label: '0.1 mg/L' },
+            { concentration: 0.2, hsv: [354, 23, 99], label: '0.2 mg/L' },
+            { concentration: 0.5, hsv: [336, 32, 96], label: '0.5 mg/L' },
+            { concentration: 1.0, hsv: [324, 42, 93], label: '1.0 mg/L' },
         ];
 
         // 使用する標準色データ（キャリブレーションで更新される）
@@ -493,6 +493,73 @@
 
         let stream = null;
 
+        // RGBからHSVへ変換
+        function rgbToHsv(r, g, b) {
+            r = r / 255;
+            g = g / 255;
+            b = b / 255;
+
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const delta = max - min;
+
+            let h = 0;
+            let s = 0;
+            const v = max;
+
+            if (delta !== 0) {
+                s = delta / max;
+
+                if (max === r) {
+                    h = ((g - b) / delta) % 6;
+                } else if (max === g) {
+                    h = (b - r) / delta + 2;
+                } else {
+                    h = (r - g) / delta + 4;
+                }
+
+                h = Math.round(h * 60);
+                if (h < 0) h += 360;
+            }
+
+            s = Math.round(s * 100);
+            const vPercent = Math.round(v * 100);
+
+            return [h, s, vPercent];
+        }
+
+        // HSVからRGBへ変換（表示用）
+        function hsvToRgb(h, s, v) {
+            s = s / 100;
+            v = v / 100;
+
+            const c = v * s;
+            const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+            const m = v - c;
+
+            let r = 0, g = 0, b = 0;
+
+            if (h >= 0 && h < 60) {
+                r = c; g = x; b = 0;
+            } else if (h >= 60 && h < 120) {
+                r = x; g = c; b = 0;
+            } else if (h >= 120 && h < 180) {
+                r = 0; g = c; b = x;
+            } else if (h >= 180 && h < 240) {
+                r = 0; g = x; b = c;
+            } else if (h >= 240 && h < 300) {
+                r = x; g = 0; b = c;
+            } else {
+                r = c; g = 0; b = x;
+            }
+
+            return [
+                Math.round((r + m) * 255),
+                Math.round((g + m) * 255),
+                Math.round((b + m) * 255)
+            ];
+        }
+
         // 標準色を表示
         function displayStandardColors() {
             const container = document.getElementById('standardColors');
@@ -503,7 +570,9 @@
 
                 const colorBox = document.createElement('div');
                 colorBox.className = 'standard-color-box';
-                colorBox.style.backgroundColor = `rgb(${color.rgb[0]}, ${color.rgb[1]}, ${color.rgb[2]})`;
+                // HSVからRGBに変換して表示
+                const rgb = hsvToRgb(color.hsv[0], color.hsv[1], color.hsv[2]);
+                colorBox.style.backgroundColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
 
                 const label = document.createElement('div');
                 label.className = 'standard-color-label';
@@ -531,19 +600,19 @@
                 const label = document.createElement('span');
                 label.textContent = color.label;
 
-                const rgbInfo = document.createElement('span');
-                rgbInfo.style.marginLeft = '10px';
-                rgbInfo.style.color = '#999';
-                rgbInfo.style.fontSize = '12px';
+                const colorInfo = document.createElement('span');
+                colorInfo.style.marginLeft = '10px';
+                colorInfo.style.color = '#999';
+                colorInfo.style.fontSize = '12px';
 
                 if (calibrationData[color.concentration]) {
-                    const rgb = calibrationData[color.concentration];
-                    rgbInfo.textContent = `RGB(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+                    const hsv = calibrationData[color.concentration];
+                    colorInfo.textContent = `HSV(${hsv[0]}°, ${hsv[1]}%, ${hsv[2]}%)`;
                 }
 
                 status.appendChild(label);
                 status.appendChild(indicator);
-                status.appendChild(rgbInfo);
+                status.appendChild(colorInfo);
                 listDiv.appendChild(status);
             });
         }
@@ -569,7 +638,7 @@
                 if (calibrationData[color.concentration]) {
                     return {
                         ...color,
-                        rgb: calibrationData[color.concentration]
+                        hsv: calibrationData[color.concentration]
                     };
                 }
                 return { ...color };
@@ -637,23 +706,40 @@
             captureBtn.classList.add('btn-calibrate');
         });
 
-        // 色の距離を計算（ユークリッド距離）
-        function colorDistance(rgb1, rgb2) {
+        // 色の距離を計算（HSVベース・Hue重視）
+        function colorDistance(hsv1, hsv2) {
+            // Hue（色相）の差を計算（円環なので最短距離を考慮）
+            let hDiff = Math.abs(hsv1[0] - hsv2[0]);
+            if (hDiff > 180) {
+                hDiff = 360 - hDiff;
+            }
+            // Hueの差を0-1の範囲に正規化（重み付けのため）
+            hDiff = hDiff / 180;
+
+            // Saturation（彩度）の差
+            const sDiff = Math.abs(hsv1[1] - hsv2[1]) / 100;
+
+            // Value（明度）の差
+            const vDiff = Math.abs(hsv1[2] - hsv2[2]) / 100;
+
+            // 重み付きユークリッド距離
+            // Hueを圧倒的に重視（色相が最も重要な判定基準）
+            // H: 10.0, S: 1.0, V: 0.5
             return Math.sqrt(
-                Math.pow(rgb1[0] - rgb2[0], 2) +
-                Math.pow(rgb1[1] - rgb2[1], 2) +
-                Math.pow(rgb1[2] - rgb2[2], 2)
+                Math.pow(hDiff * 10.0, 2) +
+                Math.pow(sDiff * 1.0, 2) +
+                Math.pow(vDiff * 0.5, 2)
             );
         }
 
         // 補間による濃度推定（詳細値）
-        function estimateConcentration(measuredRGB) {
+        function estimateConcentration(measuredHSV) {
             let minDistance = Infinity;
             let closestIndex = 0;
 
             // 最も近い標準色を見つける
             standardColors.forEach((color, index) => {
-                const distance = colorDistance(measuredRGB, color.rgb);
+                const distance = colorDistance(measuredHSV, color.hsv);
                 if (distance < minDistance) {
                     minDistance = distance;
                     closestIndex = index;
@@ -671,9 +757,9 @@
             const curr = standardColors[closestIndex];
             const next = standardColors[closestIndex + 1];
 
-            const distPrev = colorDistance(measuredRGB, prev.rgb);
-            const distCurr = colorDistance(measuredRGB, curr.rgb);
-            const distNext = colorDistance(measuredRGB, next.rgb);
+            const distPrev = colorDistance(measuredHSV, prev.hsv);
+            const distCurr = colorDistance(measuredHSV, curr.hsv);
+            const distNext = colorDistance(measuredHSV, next.hsv);
 
             // 最も近い2点間で線形補間
             if (distPrev < distNext) {
@@ -762,8 +848,11 @@
             // メータートラック
             const track = document.createElement('div');
             track.className = 'meter-track';
-            const leftColor = `rgb(${lower.rgb[0]}, ${lower.rgb[1]}, ${lower.rgb[2]})`;
-            const rightColor = `rgb(${upper.rgb[0]}, ${upper.rgb[1]}, ${upper.rgb[2]})`;
+            // HSVからRGBに変換して表示
+            const leftRgb = hsvToRgb(lower.hsv[0], lower.hsv[1], lower.hsv[2]);
+            const rightRgb = hsvToRgb(upper.hsv[0], upper.hsv[1], upper.hsv[2]);
+            const leftColor = `rgb(${leftRgb[0]}, ${leftRgb[1]}, ${leftRgb[2]})`;
+            const rightColor = `rgb(${rightRgb[0]}, ${rightRgb[1]}, ${rightRgb[2]})`;
             track.style.setProperty('--color-left', leftColor);
             track.style.setProperty('--color-right', rightColor);
 
@@ -794,14 +883,15 @@
         }
 
         // 信頼度計算
-        function calculateConfidence(measuredRGB) {
-            const distances = standardColors.map(color => 
-                colorDistance(measuredRGB, color.rgb)
+        function calculateConfidence(measuredHSV) {
+            const distances = standardColors.map(color =>
+                colorDistance(measuredHSV, color.hsv)
             );
             const minDistance = Math.min(...distances);
-            
-            // 距離が近いほど信頼度が高い（最大255の距離を100%として計算）
-            const confidence = Math.max(0, 100 - (minDistance / 255 * 100));
+
+            // 距離が近いほど信頼度が高い
+            // Hue重視の重み付けにより、最大距離は約10程度になる
+            const confidence = Math.max(0, 100 - (minDistance / 10.0 * 100));
             return confidence;
         }
 
@@ -848,14 +938,15 @@
         captureBtn.addEventListener('click', () => {
             const measuredRGB = captureRGB();
             const [r, g, b] = measuredRGB;
+            const measuredHSV = rgbToHsv(r, g, b);
 
             // キャリブレーションモードの場合
             if (isCalibrationMode) {
-                calibrationData[calibrationConcentration] = measuredRGB;
+                calibrationData[calibrationConcentration] = measuredHSV;
                 applyCalibration();
                 updateCalibrationStatus();
 
-                alert(`${calibrationConcentration} mg/L の標準色を記録しました\nRGB: ${r}, ${g}, ${b}`);
+                alert(`${calibrationConcentration} mg/L の標準色を記録しました\nHSV: ${measuredHSV[0]}°, ${measuredHSV[1]}%, ${measuredHSV[2]}%`);
 
                 // モードをリセット
                 isCalibrationMode = false;
@@ -864,9 +955,9 @@
                 captureBtn.classList.remove('btn-calibrate');
             } else {
                 // 通常の測定モード
-                const detailedConcentration = estimateConcentration(measuredRGB);
+                const detailedConcentration = estimateConcentration(measuredHSV);
                 const standardValue = findNearestStandardValue(detailedConcentration);
-                const confidence = calculateConfidence(measuredRGB);
+                const confidence = calculateConfidence(measuredHSV);
 
                 // 結果を表示（標準値 (詳細値) の形式）
                 let displayText;
