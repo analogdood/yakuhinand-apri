@@ -120,6 +120,15 @@
         background: linear-gradient(135deg, #f8f6ff 0%, #f0ecff 100%);
     }
 
+    .packtest-card {
+        border-left: 5px solid #ff6b6b;
+    }
+
+    .packtest-card:hover {
+        border-color: #ff6b6b;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    }
+
     .tool-title {
         color: #2c3e50;
         font-size: 22px;
@@ -286,6 +295,19 @@
                     <div class="feature">PAC・苛性ソーダ計算</div>
                 </div>
             </a>
+
+            <!-- パックテスト アルミニウム分析 -->
+            <a href="packtest-analyzer.html" class="tool-card packtest-card">
+                <span class="tool-icon">🧪</span>
+                <h3 class="tool-title">パックテスト アルミニウム分析</h3>
+                <p class="tool-description">カメラで撮影してパックテストの色を分析し、より詳細なアルミニウム濃度を測定します。</p>
+                <div class="tool-features">
+                    <div class="feature">カメラで色検出</div>
+                    <div class="feature">RGB値から濃度推定</div>
+                    <div class="feature">標準色データ比較</div>
+                    <div class="feature">信頼度表示</div>
+                </div>
+            </a>
         </div>
 
         <div class="footer">
@@ -294,6 +316,7 @@
                 <a href="活性炭注入計算機.html" class="footer-link">活性炭注入計算</a>
                 <a href="薬品注入率計算機.html" class="footer-link">薬品注入率計算機（詳細版）</a>
                 <a href="薬品注入計算アプリ（基本）.html" class="footer-link">薬品注入計算アプリ（基本）</a>
+                <a href="packtest-analyzer.html" class="footer-link">パックテスト分析</a>
             </div>
             
             <!-- ライセンス情報 -->
