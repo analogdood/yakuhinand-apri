@@ -72,8 +72,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 100px;
-            height: 100px;
+            width: 60px;
+            height: 60px;
             border: 3px solid #00ff00;
             box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
             pointer-events: none;
@@ -412,12 +412,16 @@
             
             <div class="info-box">
                 <h3>📋 使い方</h3>
-                <ul>
-                    <li>パックテストの発色部分を緑色の枠内に合わせてください</li>
-                    <li>明るい場所で、影が入らないように撮影してください</li>
-                    <li>できるだけカメラを垂直に保ってください</li>
-                    <li>標準色カードが近くにあるとより正確です</li>
-                </ul>
+                <ol style="line-height: 1.8;">
+                    <li>「📷 カメラ起動」ボタンを押す</li>
+                    <li>カメラ使用を許可するか聞かれたら許可する</li>
+                    <li>緑色の十字の交差点をチューブの中心に合わせる</li>
+                    <li>「📸 測定する」ボタンを押して測定</li>
+                    <li>繰り返す場合は「🔄 リセット」を押して①から始める</li>
+                </ol>
+                <p style="margin-top: 15px; font-size: 13px; color: #666;">
+                    💡 <strong>ポイント:</strong> 明るい場所で、影が入らないように撮影してください。
+                </p>
             </div>
             
             <div class="info-box" style="background: #fff3e0; border-left-color: #ff9800;">
@@ -904,10 +908,10 @@
             // 現在のフレームをキャプチャ
             ctx.drawImage(video, 0, 0);
 
-            // 中心部分の色を取得（100x100ピクセルの平均）
+            // 中心部分の色を取得（60x60ピクセルの平均）
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
-            const sampleSize = 100;
+            const sampleSize = 60;
 
             const imageData = ctx.getImageData(
                 centerX - sampleSize / 2,
