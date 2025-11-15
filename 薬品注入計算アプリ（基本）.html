@@ -417,12 +417,22 @@
         <h1>薬品注入計算アプリ（基本）</h1>
         
         <!-- 設定状況表示 -->
-        <div id="settings-status" style="background: #f8f9fa; border-radius: 8px; padding: 12px; margin: 15px 0; border-left: 4px solid #28a745;">
-            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 16px;">⚙️</span>
-                    <span style="font-weight: 600; color: #495057;">設定状況:</span>
-                    <span id="settings-source" style="color: #28a745; font-weight: 500;">デフォルト設定使用</span>
+        <div id="settings-status" style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border-radius: 12px; padding: 16px; margin: 15px 0; border: 3px solid #28a745; box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 24px;">⚙️</span>
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                        <span style="font-weight: 600; color: #495057; font-size: 13px;">使用中の計算式</span>
+                        <span id="settings-source" style="color: #28a745; font-weight: 700; font-size: 20px; text-shadow: 1px 1px 2px rgba(40, 167, 69, 0.2);">新式</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-new-formula" onclick="switchFormula('new')" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);">
+                        新式
+                    </button>
+                    <button id="btn-old-formula" onclick="switchFormula('old')" style="background: #e9ecef; color: #6c757d; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                        旧式
+                    </button>
                 </div>
             </div>
         </div>
@@ -546,7 +556,11 @@
 
         <!-- 結果表示 -->
         <div class="results" id="results" style="display: none;">
-            <h2 style="color: #2c3e50; margin-bottom: 20px; text-align: center;">💧 計算結果</h2>
+            <h2 style="color: #2c3e50; margin-bottom: 15px; text-align: center;">💧 計算結果</h2>
+            <div style="background: #fff; border-radius: 8px; padding: 10px; margin-bottom: 15px; text-align: center; border: 2px solid #28a745;">
+                <span style="font-size: 13px; color: #6c757d;">計算に使用した式:</span>
+                <span id="result-formula-type" style="font-size: 18px; font-weight: 700; color: #28a745; margin-left: 8px;">新式</span>
+            </div>
             <div class="result-item">
                 <span class="result-label">PAC注入率</span>
                 <span><span class="result-value" id="pac-rate">0</span><span class="result-unit">mg/L</span></span>
@@ -597,8 +611,8 @@
     </div>
 
 <script>
-    // デフォルト設定値（関口浄水場仕様）
-    const DEFAULT_SETTINGS = {
+    // 旧式設定値
+    const OLD_SETTINGS = {
         // PAC計算係数
         pacA1: 31.6,
         pacB1: 6.89,
@@ -607,7 +621,29 @@
         pacA3: 32.5,
         pacB3: 6.7,
         // 苛性計算係数
-        rawAlkalinity: 23.35,
+        causticA1: 23.35,
+        causticA2: 20.00,
+        causticK: 0.15,
+        causticF: 3.20,
+        // 薬品物性
+        chemicalDensity: 1.200,
+        unitConversion: 1000,
+        // 濁度レンジ設定（新式と共通）
+        range1Max: 12,
+        range2Max: 46
+    };
+
+    // 新式設定値
+    const NEW_SETTINGS = {
+        // PAC計算係数
+        pacA1: 23.5,
+        pacB1: 10.5,
+        pacA2: 31,
+        pacB2: 8.4,
+        pacA3: 31.5,
+        pacB3: 8.3,
+        // 苛性計算係数
+        causticA1: 27,
         causticA2: 20.00,
         causticK: 0.15,
         causticF: 3.20,
@@ -615,11 +651,15 @@
         chemicalDensity: 1.200,
         unitConversion: 1000,
         // 濁度レンジ設定
-        range1Max: 7,
-        range2Max: 39
+        range1Max: 12,
+        range2Max: 46
     };
 
+    // デフォルトは新式を使用
+    const DEFAULT_SETTINGS = {...NEW_SETTINGS};
+
     let currentSettings = {...DEFAULT_SETTINGS};
+    let currentFormulaType = 'new'; // 'old' or 'new'
 
     // 詳細設定を手動で読み込む
     function loadDetailedSettings() {
@@ -638,7 +678,9 @@
                 if (settings.pacB2) currentSettings.pacB2 = parseFloat(settings.pacB2);
                 if (settings.pacA3) currentSettings.pacA3 = parseFloat(settings.pacA3);
                 if (settings.pacB3) currentSettings.pacB3 = parseFloat(settings.pacB3);
-                if (settings.rawAlkalinity) currentSettings.rawAlkalinity = parseFloat(settings.rawAlkalinity);
+                // 後方互換性のため、rawAlkalinityとcausticA1の両方を確認
+                if (settings.causticA1) currentSettings.causticA1 = parseFloat(settings.causticA1);
+                else if (settings.rawAlkalinity) currentSettings.causticA1 = parseFloat(settings.rawAlkalinity);
                 if (settings.causticA2) currentSettings.causticA2 = parseFloat(settings.causticA2);
                 if (settings.causticK) currentSettings.causticK = parseFloat(settings.causticK);
                 if (settings.causticF) currentSettings.causticF = parseFloat(settings.causticF);
@@ -688,7 +730,9 @@
                 if (settings.pacB2) currentSettings.pacB2 = parseFloat(settings.pacB2);
                 if (settings.pacA3) currentSettings.pacA3 = parseFloat(settings.pacA3);
                 if (settings.pacB3) currentSettings.pacB3 = parseFloat(settings.pacB3);
-                if (settings.rawAlkalinity) currentSettings.rawAlkalinity = parseFloat(settings.rawAlkalinity);
+                // 後方互換性のため、rawAlkalinityとcausticA1の両方を確認
+                if (settings.causticA1) currentSettings.causticA1 = parseFloat(settings.causticA1);
+                else if (settings.rawAlkalinity) currentSettings.causticA1 = parseFloat(settings.rawAlkalinity);
                 if (settings.causticA2) currentSettings.causticA2 = parseFloat(settings.causticA2);
                 if (settings.causticK) currentSettings.causticK = parseFloat(settings.causticK);
                 if (settings.causticF) currentSettings.causticF = parseFloat(settings.causticF);
@@ -726,6 +770,67 @@
         statusElement.style.color = '#28a745';
         document.getElementById('settings-status').style.borderLeftColor = '#28a745';
         console.log('デフォルト設定にリセットしました');
+    }
+
+    // 計算式の切り替え
+    function switchFormula(type) {
+        currentFormulaType = type;
+
+        // 設定値を切り替え
+        if (type === 'new') {
+            currentSettings = {...NEW_SETTINGS};
+        } else {
+            currentSettings = {...OLD_SETTINGS};
+        }
+
+        // ボタンのスタイルを更新
+        const btnNew = document.getElementById('btn-new-formula');
+        const btnOld = document.getElementById('btn-old-formula');
+        const statusBorder = document.getElementById('settings-status');
+
+        if (type === 'new') {
+            btnNew.style.background = '#28a745';
+            btnNew.style.color = 'white';
+            btnNew.style.boxShadow = '0 2px 6px rgba(40, 167, 69, 0.3)';
+            btnOld.style.background = '#e9ecef';
+            btnOld.style.color = '#6c757d';
+            btnOld.style.boxShadow = 'none';
+            document.getElementById('settings-source').textContent = '新式';
+            statusBorder.style.borderColor = '#28a745';
+            statusBorder.style.background = 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%)';
+        } else {
+            btnOld.style.background = '#007bff';
+            btnOld.style.color = 'white';
+            btnOld.style.boxShadow = '0 2px 6px rgba(0, 123, 255, 0.3)';
+            btnNew.style.background = '#e9ecef';
+            btnNew.style.color = '#6c757d';
+            btnNew.style.boxShadow = 'none';
+            document.getElementById('settings-source').textContent = '旧式';
+            document.getElementById('settings-source').style.color = '#007bff';
+            statusBorder.style.borderColor = '#007bff';
+            statusBorder.style.background = 'linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%)';
+        }
+
+        // 新式の場合は緑色を維持
+        if (type === 'new') {
+            document.getElementById('settings-source').style.color = '#28a745';
+        }
+
+        // 選択状態を保存
+        localStorage.setItem('formula-type', type);
+
+        console.log(type === 'new' ? '新式に切り替えました' : '旧式に切り替えました', currentSettings);
+    }
+
+    // 計算式選択状態の読み込み
+    function loadFormulaType() {
+        const saved = localStorage.getItem('formula-type');
+        if (saved && (saved === 'old' || saved === 'new')) {
+            switchFormula(saved);
+        } else {
+            // デフォルトは新式
+            switchFormula('new');
+        }
     }
 
 
@@ -946,7 +1051,7 @@
         pacRate += pacCorrection;
 
         // 苛性ソーダ注入率計算（詳細版と同じ計算式）
-        let causticRate = (currentSettings.causticA2 + currentSettings.causticK * pacRate - currentSettings.rawAlkalinity) * currentSettings.causticF;
+        let causticRate = (currentSettings.causticA2 + currentSettings.causticK * pacRate - currentSettings.causticA1) * currentSettings.causticF;
         
         // 苛性ソーダ％調整を適用
         const causticSign = causticDialValues.sign === 0 ? 1 : -1;
@@ -959,11 +1064,12 @@
         const pacVolume = (pacRate * flowRate) / (currentSettings.chemicalDensity * currentSettings.unitConversion);
         const causticVolume = (causticRate * flowRate) / (currentSettings.chemicalDensity * currentSettings.unitConversion);
 
-        // 結果表示
-        document.getElementById('pac-rate').textContent = pacRate.toFixed(1);
-        document.getElementById('caustic-rate').textContent = causticRate.toFixed(1);
-        document.getElementById('pac-volume').textContent = pacVolume.toFixed(1);
-        document.getElementById('caustic-volume').textContent = causticVolume.toFixed(1);
+        // 結果表示（0以下の場合は「-」表示）
+        document.getElementById('pac-rate').textContent = pacRate <= 0 ? '-' : pacRate.toFixed(1);
+        document.getElementById('caustic-rate').textContent = causticRate <= 0 ? '-' : causticRate.toFixed(1);
+        document.getElementById('pac-volume').textContent = pacVolume <= 0 ? '-' : pacVolume.toFixed(1);
+        document.getElementById('caustic-volume').textContent = causticVolume <= 0 ? '-' : causticVolume.toFixed(1);
+        document.getElementById('result-formula-type').textContent = currentFormulaType === 'new' ? '新式' : '旧式';
         document.getElementById('results').style.display = 'block';
 
         // 結果までスクロール
@@ -1194,6 +1300,7 @@
     // ページ読み込み時の初期化
     window.addEventListener('load', () => {
         initializeTurbiditySelectors();
+        loadFormulaType(); // 計算式選択状態を読み込み
         loadFlowRateDials(); // 原水流量ダイヤル値を読み込み
         loadTurbidityDials(); // 濁度ダイヤル値を読み込み
         loadCausticDials(); // 苛性ソーダ調整ダイヤル値を読み込み
@@ -1210,9 +1317,8 @@
         document.getElementById('pac-ones-dial').classList.add('zero-value');
         document.getElementById('caustic-tens-dial').classList.add('zero-value');
         document.getElementById('caustic-ones-dial').classList.add('zero-value');
-        // 基本版は常にデフォルト設定で起動
         addTouchSupport(); // iPad/タッチデバイス対応
-        console.log('薬品注入計算アプリ（基本）初期化完了 - デフォルト設定使用');
+        console.log('薬品注入計算アプリ（基本）初期化完了');
     });
 </script>
 
